@@ -14,10 +14,11 @@ class Linerreg:
         sum_w, sum_b = 0, 0
         nums = len(self.x)
         for i in range(nums):
-            sum_w += (self.y_true[i]-self.w*self.x[i]-self.b)*self.x[i]
-            sum_b += self.y_true[i]-self.w*self.x[i]-self.b
+            sum_w += (self.w*self.x[i]+self.b-self.y_true[i])*self.x[i]
+            sum_b += self.w*self.x[i]+self.b-self.y_true[i]
         derivatives_w = sum_w/nums
         derivatives_b = sum_b/nums
+        print('derivatives_w',derivatives_w,'derivatives_b=',derivatives_b)
         return derivatives_w, derivatives_b
 
     def update_wb_onetime(self):
@@ -33,11 +34,11 @@ class Linerreg:
 
 
 if __name__ =='__main__':
-    x=np.random.randint(low=1,high=100,size=[20])
+    x=np.random.randint(low=1,high=10,size=[20])
     bias=np.random.random([len(x)])
     y_true=5*x+24-bias
     learn_rate=0.01
-    iter_times=500
+    iter_times=2000
     w,b=0,0
     test=Linerreg(x, y_true, learn_rate, iter_times, w, b)
     test.update_wb()
