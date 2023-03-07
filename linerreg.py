@@ -1,44 +1,43 @@
 import numpy as np
 
+
 class Linerreg:
-    def __init__(self, x, y_true, learn_rate, iter_times, w, b) -> None:
-        self.x = x
-        self.y_true = y_true
+    def __init__(self, X, Y_true, learn_rate, iter_times, Theta) -> None:
+        self.X = X
+        self.Y_true = Y_true
         self.learn_rate = learn_rate
         self.iter_times = iter_times
-        self.w = w
-        self.b = b
+        self.Theta = Theta
 
     def calc_derivatives(self):
-        # calc derivatives
-        sum_w, sum_b = 0, 0
-        nums = len(self.x)
-        for i in range(nums):
-            sum_w += (self.w*self.x[i]+self.b-self.y_true[i])*self.x[i]
-            sum_b += self.w*self.x[i]+self.b-self.y_true[i]
-        derivatives_w = sum_w/nums
-        derivatives_b = sum_b/nums
-        print('derivatives_w',derivatives_w,'derivatives_b=',derivatives_b)
-        return derivatives_w, derivatives_b
+        sum = np.zeros([len(self.Theta)])
+        for i in range(len(self.X)):
+            y_predict = np.dot(self.X[i], self.Theta)
+            for j in range(len(self.Theta)):
+                sum[j] += (y_predict-self.Y_true[i])*self.X[i][j]
+        derivatives = np.ones([len(self.Theta)],dtype=float)
+        derivatives = [sum[i]/len(self.X) for i in range(len(self.Theta))]
+        return derivatives
 
     def update_wb_onetime(self):
-        #更新w、b一次
-        (derivatives_w, derivatives_b) = self.calc_derivatives()
-        self.w -= self.learn_rate*derivatives_w
-        self.b -= self.learn_rate*derivatives_b
+        #更新theta一次
+        derivatives = self.calc_derivatives()
+        self.Theta -= self.learn_rate*derivatives
 
     def update_wb(self):
         for i in range(self.iter_times):
-            print('w=', self.w, 'b=', self.b)
+            print('theta=', self.Theta)
             self.update_wb_onetime()
 
 
-if __name__ =='__main__':
-    x=np.random.randint(low=1,high=10,size=[20])
-    bias=np.random.random([len(x)])
-    y_true=5*x+24-bias
-    learn_rate=0.01
-    iter_times=2000
-    w,b=0,0
-    test=Linerreg(x, y_true, learn_rate, iter_times, w, b)
+if __name__ == '__main__':
+    X = np.random.randint(low=1, high=20, size=[20, 5])
+    Theta = np.array([2, 4, 23, 7, 14], dtype=float)
+    Y_true = np.zeros([len(X)])
+    for i in range(len(X)):
+        Y_true[i] = np.dot(X[i],Theta)
+    learn_rate = 0.01
+    iter_times = 500
+    Init_theta=np.array([0,0,0,0,0],dtype=float)
+    test = Linerreg(X, Y_true, learn_rate, iter_times, Init_theta)
     test.update_wb()
