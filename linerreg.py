@@ -15,8 +15,9 @@ class Linerreg:
             y_predict = np.dot(self.X[i], self.Theta)
             for j in range(len(self.Theta)):
                 sum[j] += (y_predict-self.Y_true[i])*self.X[i][j]
-        derivatives = np.ones([len(self.Theta)],dtype=float)
-        derivatives = [sum[i]/len(self.X) for i in range(len(self.Theta))]
+        
+        derivatives = np.array([sum[i]/len(self.X)
+                               for i in range(len(self.Theta))])
         return derivatives
 
     def update_wb_onetime(self):
@@ -33,11 +34,9 @@ class Linerreg:
 if __name__ == '__main__':
     X = np.random.randint(low=1, high=20, size=[20, 5])
     Theta = np.array([2, 4, 23, 7, 14], dtype=float)
-    Y_true = np.zeros([len(X)])
-    for i in range(len(X)):
-        Y_true[i] = np.dot(X[i],Theta)
-    learn_rate = 0.01
-    iter_times = 500
+    Y_true= np.dot(X,Theta)
+    learn_rate = 0.0005
+    iter_times = 2000
     Init_theta=np.array([0,0,0,0,0],dtype=float)
     test = Linerreg(X, Y_true, learn_rate, iter_times, Init_theta)
     test.update_wb()
