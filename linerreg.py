@@ -1,13 +1,28 @@
-import numpy as np
+'''
+@Description  : 该类实现了线性回归基本功能
+@Version      : 1.0
+@Author       : gitmao2022
+@Date         : 2023-03-05 22:21:44
+@LastEditors  : gitmao2022
+@LastEditTime : 2023-03-08 22:45:00
+@FilePath     : linerreg.py
+@Copyright (C) 2023 ${git_name}. All rights reserved.
+'''
 
+
+import numpy as np
 
 class Linerreg:
     def __init__(self, X, Y_true, learn_rate, iter_times, Theta) -> None:
-        self.X = X
-        self.Y_true = Y_true
-        self.learn_rate = learn_rate
-        self.iter_times = iter_times
-        self.Theta = Theta
+    '''
+    @param learn_rate {float}: 学习率
+    @param iter_times {int}: 训练次数
+    '''
+    self.X = X
+    self.Y_true = Y_true
+    self.learn_rate = learn_rate
+    self.iter_times = iter_times
+    self.Theta = Theta
 
     def calc_derivatives(self):
         sum = np.zeros([len(self.Theta)])
