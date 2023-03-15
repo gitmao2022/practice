@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-06 11:19:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-15 09:52:15
+@LastEditTime : 2023-03-15 14:04:33
 @FilePath     : linerreg.py
 @Copyright (C) 2023  by ${git_name}. All rights reserved.
 '''
@@ -38,20 +38,30 @@ class Linerreg:
 
     def update_wb(self):
         for i in range(iter_times):
-            print('num=', i, 'theta=', self.Theta)
+            #print('num=', i, 'theta=', self.Theta)
             self.update_wb_onetime()
+        return self.Theta
 
 
 if __name__ == '__main__':
     X = np.random.randint(low=1, high=20, size=[20, 5])
-    X_t=npas.linerreg_feature_scaling(X)
-    L = np.ones([len(X_t), 1])
-    X = np.column_stack((X_t, L))
-    print(X_t)
+    X_train=X[0:10,:]
+    X_test=X[11:19,:]
+    X_train_t=npas.linerreg_feature_scaling(X_train)
+    X_test_t=npas.linerreg_feature_scaling(X_test)
+    X=npas.add_right_ones(X)
+    X_train_t=npas.add_right_ones(X_train_t)
+    X_test_t=npas.add_right_ones(X_test_t)
+    
     Theta = np.array([2, 4, 23, 7, 14, 3], dtype=float)
-    Y_true = np.dot(X, Theta)
+    Y_train_true = np.dot(X_train, Theta)
     learn_rate = 0.0005
-    iter_times = 20000
+    iter_times = 10000
     Init_theta = np.array([0, 0, 0, 0, 0, 0], dtype=float)
-    test = Linerreg(X_t, Y_true, learn_rate, iter_times, Init_theta)
-    test.update_wb()
+    test = Linerreg(X_train_t, Y_true, learn_rate, iter_times, Init_theta)
+    Theta_predict=test.update_wb()
+    Y_predict=np.dot(X_test_t,Theta_predict)
+    print("Y真实值是：",Y_true[11:])
+    print('Y预测值是：',Y_predict)
+    
+
