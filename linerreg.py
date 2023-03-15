@@ -4,16 +4,21 @@
 @Author       : gitmao2022
 @Date         : 2023-03-06 11:19:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-10 10:45:12
+@LastEditTime : 2023-03-15 09:52:15
 @FilePath     : linerreg.py
 @Copyright (C) 2023  by ${git_name}. All rights reserved.
 '''
 
 
 import numpy as np
+import npas
+
 class Linerreg:
-    
     def __init__(self, X, Y_true, learn_rate, iter_times, Theta) -> None:
+        '''
+        @param learn_rate {float}: 学习率
+        @param iter_times {int}: 训练次数
+        '''
         self.X = X
         self.Y_true = Y_true
         self.learn_rate = learn_rate
@@ -21,9 +26,9 @@ class Linerreg:
         self.Theta = Theta
 
     def calc_derivatives(self):
-      
-        Y_predict=np.dot(self.X,self.Theta)
-        Derivatives=np.dot((Y_predict-self.Y_true),self.X)/len(self.X)
+
+        Y_predict = np.dot(self.X, self.Theta)
+        Derivatives = np.dot((Y_predict-self.Y_true), self.X)/len(self.X)
         return Derivatives
 
     def update_wb_onetime(self):
@@ -38,15 +43,15 @@ class Linerreg:
 
 
 if __name__ == '__main__':
-    pass()
     X = np.random.randint(low=1, high=20, size=[20, 5])
-    L=np.ones([len(X),1])
-    X=np.column_stack((X,L))
-    print(X)
-    Theta = np.array([2, 4, 23, 7, 14,3], dtype=float)
-    Y_true= np.dot(X,Theta)
+    X_t=npas.linerreg_feature_scaling(X)
+    L = np.ones([len(X_t), 1])
+    X = np.column_stack((X_t, L))
+    print(X_t)
+    Theta = np.array([2, 4, 23, 7, 14, 3], dtype=float)
+    Y_true = np.dot(X, Theta)
     learn_rate = 0.0005
-    iter_times =20000
-    Init_theta=np.array([0,0,0,0,0,0],dtype=float)
-    test = Linerreg(X, Y_true, learn_rate, iter_times, Init_theta)
+    iter_times = 20000
+    Init_theta = np.array([0, 0, 0, 0, 0, 0], dtype=float)
+    test = Linerreg(X_t, Y_true, learn_rate, iter_times, Init_theta)
     test.update_wb()
