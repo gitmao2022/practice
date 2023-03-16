@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-06 11:19:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-15 14:04:33
+@LastEditTime : 2023-03-16 17:18:06
 @FilePath     : linerreg.py
 @Copyright (C) 2023  by ${git_name}. All rights reserved.
 '''
@@ -46,7 +46,7 @@ class Linerreg:
 if __name__ == '__main__':
     X = np.random.randint(low=1, high=20, size=[20, 5])
     X_train=X[0:10,:]
-    X_test=X[11:19,:]
+    X_test=X[11:,:]
     X_train_t=npas.linerreg_feature_scaling(X_train)
     X_test_t=npas.linerreg_feature_scaling(X_test)
     X=npas.add_right_ones(X)
@@ -54,14 +54,14 @@ if __name__ == '__main__':
     X_test_t=npas.add_right_ones(X_test_t)
     
     Theta = np.array([2, 4, 23, 7, 14, 3], dtype=float)
-    Y_train_true = np.dot(X_train, Theta)
+    Y_true = np.dot(X, Theta)
     learn_rate = 0.0005
-    iter_times = 10000
+    iter_times = 20000
     Init_theta = np.array([0, 0, 0, 0, 0, 0], dtype=float)
-    test = Linerreg(X_train_t, Y_true, learn_rate, iter_times, Init_theta)
+    test = Linerreg(X_train_t, Y_true[:10], learn_rate, iter_times, Init_theta)
     Theta_predict=test.update_wb()
-    Y_predict=np.dot(X_test_t,Theta_predict)
+    Y_test_predict=np.round(np.dot(X_test_t,Theta_predict),2)
     print("Y真实值是：",Y_true[11:])
-    print('Y预测值是：',Y_predict)
+    print("Y预测值是：",Y_test_predict)
     
 
