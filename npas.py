@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-15 11:13:23
+@LastEditTime : 2023-03-17 16:29:24
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -25,7 +25,7 @@ def linerreg_feature_scaling(X, modle='min-max'):
             l_max, l_min = np.max(X[:, i]), np.min(X[:, i])
             c = l_max - l_min
             #print('c=',c)
-            ans[:,i] = np.around((X[:, i] - l_min) / c,2)
+            ans[:,i] = np.around((X[:, i] - l_min) / c,2) if c!=0 else 0
         return ans
             
 
