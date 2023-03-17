@@ -34,10 +34,10 @@ class Linerreg:
     def update_wb_onetime(self):
         #更新theta一次
         derivatives = self.calc_derivatives()
-        self.Theta -= learn_rate*derivatives
+        self.Theta -= self.learn_rate*derivatives
 
     def update_wb(self):
-        for i in range(iter_times):
+        for i in range(self.iter_times):
             #print('num=', i, 'theta=', self.Theta)
             self.update_wb_onetime()
         return self.Theta
