@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-21 22:32:29
+@LastEditTime : 2023-03-22 11:51:37
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -16,8 +16,9 @@ def linerreg_feature_scaling(X, modle='min-max'):
     '''
     @description: 对数据进行特征缩放，适用于线性回归
     @param X {拟进行缩放的数据，numpy格式，数组维度不超过2}: 
-    @param modle {'min-max':min-max归一化;'test':在该测试中，每列数据
-    除以该列的最大值，使得数据均在0-1间，并且使每列数据进行了相同参数的线性变换}: 
+    @param modle {'min-max':min-max归一化;'test':在该测试中，
+    每个数据都除以所有数据的最大值减去最小值，也即每个数据都进行了相同的线性变换；
+    'standard':标准化处理} 
     @return 返回缩放后的numpy（不改变原X值）
     '''
     if modle == 'min-max':
@@ -30,8 +31,14 @@ def linerreg_feature_scaling(X, modle='min-max'):
 
     if modle == 'test':
         Ans = X.astype(np.float16)
-        Max_var = np.max(X, axis=0)
-        Ans = Ans / Max_var
+        diff = np.max(X)-np.min(X)
+        Ans = Ans / diff
+
+    if modle=='standard':
+        Ans = X.astype(np.float16)
+        mean = np.mean(Ans, axis=0)
+        std = np.std(Ans, axis=0)
+        Ans = (Ans - mean) / std
 
     return Ans
 
