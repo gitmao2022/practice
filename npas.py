@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-22 11:51:37
+@LastEditTime : 2023-03-25 10:46:02
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -38,7 +38,9 @@ def linerreg_feature_scaling(X, modle='min-max'):
         Ans = X.astype(np.float16)
         mean = np.mean(Ans, axis=0)
         std = np.std(Ans, axis=0)
-        Ans = (Ans - mean) / std
+        Ans = (Ans - mean) / std 
+       # Ans = np.where(std != 0, (Ans - mean) / std, 0)
+        Ans=np.where(Ans!=0,Ans,1)
 
     return Ans
 
