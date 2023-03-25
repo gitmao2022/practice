@@ -52,3 +52,7 @@ def add_right_ones(X):
     '''
     L = np.ones(shape=[len(X)], dtype=X.dtype)
     return np.column_stack((X, L))
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
