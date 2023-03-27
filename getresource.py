@@ -1,12 +1,12 @@
 '''
-@Description  : file content
+@Description  : 获取网络各类资源
 @Version      : 1.0
 @Author       : gitmao2022
 @Date         : 2023-03-26 23:08:09
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-26 23:08:35
+@LastEditTime : 2023-03-27 17:45:46
 @FilePath     : getresource.py
-@Copyright (C) 2023  by ${git_name}. All rights reserved.
+@Copyright (C) 2023  by gitmao. All rights reserved.
 '''
 # coding: utf-8
 
@@ -29,7 +29,7 @@ key_file = {
     'test_img':'t10k-images-idx3-ubyte.gz',
     'test_label':'t10k-labels-idx1-ubyte.gz'
 }
-'''
+
 
  
 dataset_dir = os.path.abspath('.')
@@ -39,43 +39,54 @@ train_num = 60000
 test_num = 10000
 img_dim = (1, 28, 28)
 img_size = 784
+'''
  
- 
-def _download(file_name):
-    file_path = dataset_dir + "/" + file_name
+def download_file(url_base,file_name,local_path):
+    '''
+    @description: 该函数用于从网络下载文件并存储于本地
+    @param url_base : 文件所在的网址（不包含文件名）
+    @param file_name : 文件名
+    @param local_path:  本地存储路径,不包含文件名
+    @return {}
+    '''
     
-    if os.path.exists(file_path):
-        return
- 
-    print("Downloading " + file_name + " ... ")
-    urllib.request.urlretrieve(url_base + file_name, file_path)
-    print("Done")
+    local_file_name = url_base + "/" + file_name
     
-def download_mnist():
-    for v in key_file.values():
-       _download(v)
+    #如果目录下已经存在要下载的文件，则选择是否覆盖
+    if os.path.exists(local_file_name):
+        choice=input(f'当前目录下{file_name}已存在，是否重新下载？(y/n) "，是否覆盖Y/N')
+        if choice.lower() == "n":
+            return
         
-def _load_label(file_name):
-    file_path = dataset_dir + "/" + file_name
-    
+    print("Downloading " + file_name + " ... ")
+    urllib.request.urlretrieve(url_base + file_name, local_path)
+    print("Done")
+
+def convert_file_to_numpy(local_path,file_name,type='label',img_size=None):
+    '''
+    @description:将文件转换为numpy数据
+    @param ：文件夹
+    @param ：文件名
+    @param type：文件类型，
+    @return 转换后的numpy数据
+    '''
+
+    file_path = local_path + "/" + file_name
     print("Converting " + file_name + " to NumPy Array ...")
     with gzip.open(file_path, 'rb') as f:
-            labels = np.frombuffer(f.read(), np.uint8, offset=8)
-    print("Done")
-    
-    return labels
- 
-def _load_img(file_name):
-    file_path = dataset_dir + "/" + file_name
-    
-    print("Converting " + file_name + " to NumPy Array ...")    
-    with gzip.open(file_path, 'rb') as f:
+        if type=='label':
+            data = np.frombuffer(f.read(), np.uint8, offset=8)
+        elif type=='img':
             data = np.frombuffer(f.read(), np.uint8, offset=16)
-    data = data.reshape(-1, img_size)
-    print("Done")
-    
+            if img_size!=None:
+                data = data.reshape(-1, img_size)
     return data
-    
+
+def save_data_to_pickle(data,save_path,save_name):
+    with open(save_path+'/'+save_name, 'wb') as f:
+        pickle.dump(dataset, f, -1)
+    print('Create pickle file done')
+
 def _convert_numpy():
     dataset = {}
     dataset['train_img'] =  _load_img(key_file['train_img'])
@@ -85,13 +96,6 @@ def _convert_numpy():
     
     return dataset
  
-def init_mnist():
-    download_mnist()
-    dataset = _convert_numpy()
-    print("Creating pickle file ...")
-    with open(save_file, 'wb') as f:
-        pickle.dump(dataset, f, -1)
-    print("Done!")
  
 def _change_one_hot_label(X):
     T = np.zeros((X.size, 10))
