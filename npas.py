@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-25 10:46:02
+@LastEditTime : 2023-03-29 17:11:17
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -56,3 +56,11 @@ def add_right_ones(X):
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
+
+def softmax(X,axis=1):
+    row_max = np.max(X, axis=axis).reshape(-1, 1)
+    X -= row_max
+    X_exp = np.exp(X)
+    return X_exp / np.sum(X_exp, axis=axis, keepdims=True)
+    

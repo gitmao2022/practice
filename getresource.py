@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-26 23:08:09
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-28 17:23:42
+@LastEditTime : 2023-03-29 11:43:26
 @FilePath     : getresource.py
 @Copyright (C) 2023  by gitmao. All rights reserved.
 '''
