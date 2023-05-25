@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-04-11 17:59:34
+@LastEditTime : 2023-05-24 15:21:54
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -53,9 +53,13 @@ def add_right_ones(X):
     L = np.ones(shape=[len(X)], dtype=X.dtype)
     return np.column_stack((X, L))
 
+# 定义sigmoid函数及其导数
+def sigmoid(X):
+    X[X>0]=1 / (1 + np.exp(-X))
+    X[X<0]=np.exp(X) / (1 + np.exp(X))
 
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+def sigmoid_derivative(X):
+    return sigmoid(X) * (1 - sigmoid(X))
 
 
 def softmax(X,axis=1):
@@ -63,4 +67,12 @@ def softmax(X,axis=1):
     X -= row_max
     X_exp = np.exp(X)
     return X_exp / np.sum(X_exp, axis=axis, keepdims=True)
-    
+
+# 定义Relu函数及其导数
+def Relu(x):
+    return np.maximum(0, x)
+
+def Relu_derivative(x):
+    x[x<=0] = 0
+    x[x>0] = 1
+    return x

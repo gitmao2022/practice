@@ -4,22 +4,17 @@
 @Author       : chatgpt
 @Date         : 2023-05-23 14:56:53
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-05-23 17:04:37
+@LastEditTime : 2023-05-24 16:10:25
 @FilePath     : test.py
 @Copyright (C) 2023  by ${git_name}. All rights reserved.
 '''
-
+import sys
+sys.path.append("..")
+import npas
 import numpy as np
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
-# 定义sigmoid函数及其导数
-def sigmoid(x):
-    x -= np.min(x, axis=1, keepdims=True)
-    return 1 / (1 + np.exp(-x))
-
-def sigmoid_derivative(x):
-    return sigmoid(x) * (1 - sigmoid(x))
 
 # 定义softmax函数及其导数
 def softmax(x):
@@ -40,7 +35,7 @@ class NeuralNetwork:
     def forward(self, input_data):
         # 前向传播
         self.z2 = np.dot(input_data, self.weights1)
-        self.a2 = sigmoid(self.z2)
+        self.a2 = npas.sigmoid(self.z2)
         self.z3 = np.dot(self.a2, self.weights2)
         self.output = softmax(self.z3)
         
@@ -49,7 +44,7 @@ class NeuralNetwork:
         error = target_output - self.output
         delta_output = error * softmax_derivative(self.z3)
         error_hidden = np.dot(delta_output, self.weights2.T)
-        delta_hidden = error_hidden * sigmoid_derivative(self.z2)
+        delta_hidden = error_hidden * npas.sigmoid_derivative(self.z2)
         
         # 更新权重矩阵
         self.weights2 += learning_rate * np.dot(self.a2.T, delta_output)
@@ -59,6 +54,7 @@ class NeuralNetwork:
         for i in range(epochs):
             self.forward(input_data)
             self.backward(input_data, target_output, learning_rate)
+            print('weights1=',self.weights1,'weights2=',self.weights2)
             
     def predict(self, input_data):
         self.forward(input_data)
