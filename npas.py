@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-05-24 15:21:54
+@LastEditTime : 2023-05-25 11:12:30
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -55,18 +55,30 @@ def add_right_ones(X):
 
 # 定义sigmoid函数及其导数
 def sigmoid(X):
-    X[X>0]=1 / (1 + np.exp(-X))
-    X[X<0]=np.exp(X) / (1 + np.exp(X))
+    
+    '''
+    对于sigmoid函数，当x值过小时，-x值则过大，导致计算e^x时溢出；
+    考虑到：1/1+e^-x=e^x/1+e^x。所以，当x小于0时，可将sigmoid函数
+    用e^x/1+e^x替代，这样就避免了溢出的情况。
+    '''
+    X[X>0]=1 / (1 + np.exp(-X[X>0]))    
+    X[X<0]=np.exp(X[X<0]) / (1 + np.exp(X[X<0]))
+    return X
+
 
 def sigmoid_derivative(X):
     return sigmoid(X) * (1 - sigmoid(X))
 
 
-def softmax(X,axis=1):
-    row_max = np.max(X, axis=axis).reshape(-1, 1)
-    X -= row_max
-    X_exp = np.exp(X)
-    return X_exp / np.sum(X_exp, axis=axis, keepdims=True)
+
+# 定义softmax函数及其导数
+def softmax(x):
+    x -= np.max(x,keepdims=True)
+    exp_x = np.exp(x)
+    return exp_x / np.sum(exp_x, keepdims=True)
+
+def softmax_derivative(x):
+    return softmax(x) * (1 - softmax(x))
 
 # 定义Relu函数及其导数
 def Relu(x):

@@ -4,26 +4,19 @@
 @Author       : chatgpt
 @Date         : 2023-05-23 14:56:53
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-05-24 16:10:25
+@LastEditTime : 2023-05-25 14:26:51
 @FilePath     : test.py
 @Copyright (C) 2023  by ${git_name}. All rights reserved.
 '''
 import sys
-sys.path.append("..")
-import npas
+import os
+sys.path.append(os.getcwd())
+import practice.npas as npas
 import numpy as np
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
 
-# 定义softmax函数及其导数
-def softmax(x):
-    x -= np.max(x, axis=1, keepdims=True)
-    exp_x = np.exp(x)
-    return exp_x / np.sum(exp_x, axis=1, keepdims=True)
-
-def softmax_derivative(x):
-    return softmax(x) * (1 - softmax(x))
 
 # 定义神经网络类
 class NeuralNetwork:
@@ -37,12 +30,13 @@ class NeuralNetwork:
         self.z2 = np.dot(input_data, self.weights1)
         self.a2 = npas.sigmoid(self.z2)
         self.z3 = np.dot(self.a2, self.weights2)
-        self.output = softmax(self.z3)
+        self.output = npas.softmax(self.z3)
         
     def backward(self, input_data, target_output, learning_rate):
         # 反向传播
-        error = target_output - self.output
-        delta_output = error * softmax_derivative(self.z3)
+        one_pos=np.where(target_output==1)[0]
+        error = -np.log(input_data[one_pos]) 
+        delta_output = error * npas.softmax_derivative(self.z3)
         error_hidden = np.dot(delta_output, self.weights2.T)
         delta_hidden = error_hidden * npas.sigmoid_derivative(self.z2)
         
@@ -52,9 +46,13 @@ class NeuralNetwork:
         
     def train(self, input_data, target_output, learning_rate, epochs):
         for i in range(epochs):
-            self.forward(input_data)
-            self.backward(input_data, target_output, learning_rate)
-            print('weights1=',self.weights1,'weights2=',self.weights2)
+            Random_index=np.random.choice(len(input_data[0]), size=10, replace=False)
+            Random_input_data=input_data[Random_index]
+            Random_output_date=target_output[Random_index]
+            for index,Arr in enumerate(Random_input_data):
+                self.forward(Arr)
+                self.backward(Arr,Random_output_date[index], learning_rate)
+           # print('weights1=',self.weights1,'weights2=',self.weights2)
             
     def predict(self, input_data):
         self.forward(input_data)
@@ -87,5 +85,5 @@ loss = -np.sum(target_test * np.log(output)) / target_test.shape[0]
 print("交叉熵损失函数：", loss)
 
 '''
-#print('target-test=',target_test[1:10])
-#print('output=',output[1:10])
+print('target-test=',target_test[1:10])
+print('output=',output[1:10])
