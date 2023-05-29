@@ -4,7 +4,7 @@
 @Author       : chatgpt
 @Date         : 2023-05-23 14:56:53
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-05-25 14:26:51
+@LastEditTime : 2023-05-26 13:49:33
 @FilePath     : test.py
 @Copyright (C) 2023  by ${git_name}. All rights reserved.
 '''
@@ -34,8 +34,7 @@ class NeuralNetwork:
         
     def backward(self, input_data, target_output, learning_rate):
         # 反向传播
-        one_pos=np.where(target_output==1)[0]
-        error = -np.log(input_data[one_pos]) 
+        error=target_output-self.output 
         delta_output = error * npas.softmax_derivative(self.z3)
         error_hidden = np.dot(delta_output, self.weights2.T)
         delta_hidden = error_hidden * npas.sigmoid_derivative(self.z2)
