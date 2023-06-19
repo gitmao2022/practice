@@ -153,5 +153,5 @@ class Variable(Node):
         assert isinstance(value, np.matrix) and value.shape == self.dim
 
         # 本节点的值被改变，重置所有下游节点的值
-        self.reset_value()
+        #self.reset_value()
         self.value = value

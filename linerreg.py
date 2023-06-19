@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-06 11:19:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-25 15:37:57
+@LastEditTime : 2023-06-19 21:22:22
 @FilePath     : linerreg.py
 @Copyright (C) 2023  by ${git_name}. All rights reserved.
 '''
