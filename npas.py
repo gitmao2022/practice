@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-05-25 11:12:30
+@LastEditTime : 2023-06-19 11:13:24
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -56,14 +56,7 @@ def add_right_ones(X):
 # 定义sigmoid函数及其导数
 def sigmoid(X):
     
-    '''
-    对于sigmoid函数，当x值过小时，-x值则过大，导致计算e^x时溢出；
-    考虑到：1/1+e^-x=e^x/1+e^x。所以，当x小于0时，可将sigmoid函数
-    用e^x/1+e^x替代，这样就避免了溢出的情况。
-    '''
-    X[X>0]=1 / (1 + np.exp(-X[X>0]))    
-    X[X<0]=np.exp(X[X<0]) / (1 + np.exp(X[X<0]))
-    return X
+    return 1.0 / (1.0 + np.power(np.e, np.where(-X > 1e2, 1e2, -X)))
 
 
 def sigmoid_derivative(X):

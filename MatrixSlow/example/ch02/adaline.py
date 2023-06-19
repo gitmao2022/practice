@@ -88,8 +88,8 @@ for epoch in range(50):
         将改变形状后的梯度乘上学习率，从当前变量值中减去，再赋值给变量节点，
         完成梯度下降更新。
         """
-        w.set_value(w.value - learning_rate * w.jacobi.T.reshape(w.shape()))
-        b.set_value(b.value - learning_rate * b.jacobi.T.reshape(b.shape()))
+        w.set_value(w.value - learning_rate * w.jacobi)
+        b.set_value(b.value - learning_rate * b.jacobi)
 
         # default_graph对象保存了所有节点，调用clear_jacobi方法清除所有节点的雅可比矩阵
         ms.default_graph.clear_jacobi()

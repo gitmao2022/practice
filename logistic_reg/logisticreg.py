@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-25 16:59:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-25 22:39:14
+@LastEditTime : 2023-06-19 17:05:07
 @FilePath     : logisticreg.py
 @Copyright (C) 2023  by ${gitmao}. All rights reserved.
 '''
@@ -12,11 +12,10 @@
 import numpy as np
 import sys
 sys.path.append("..")
-import npas
-
-sys.path.append("..")
-
-
+import os
+sys.path.append(os.getcwd())
+print(os.getcwd())
+import nemat.npas
 
 
 
@@ -51,4 +50,4 @@ class logisticreg:
             self.update_wb_onetime()
         return self.Theta
     
-   
+    
