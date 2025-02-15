@@ -4,13 +4,28 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-06-19 11:13:24
+@LastEditTime : 2025-01-31 15:04:55
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
 
 import numpy as np
 
+def _change_one_hot_label(X):
+'''
+@description: 将一个数组转化为one-hot表示
+@param X：一个一维数组
+@return 假设我们传入一个数组  X = [3, 0, 7]
+结果：
+[[0. 0. 0. 1. 0. 0. 0. 0. 0. 0.]
+ [1. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0. 0. 1. 0. 0.]]
+'''
+    T = np.zeros((X.size, 10))
+    for idx, row in enumerate(T):
+        row[X[idx]] = 1
+        
+    return T
 
 def linerreg_feature_scaling(X, modle='min-max'):
     '''

@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-26 23:08:09
 @LastEditors  : gitmao2022
-@LastEditTime : 2023-03-29 11:43:26
+@LastEditTime : 2025-02-14 22:06:33
 @FilePath     : getresource.py
 @Copyright (C) 2023  by gitmao. All rights reserved.
 '''
@@ -112,13 +112,7 @@ def download_file_to_pickle(url_base,file_name,local_path,file_type,
 
 
 
- 
-def _change_one_hot_label(X):
-    T = np.zeros((X.size, 10))
-    for idx, row in enumerate(T):
-        row[X[idx]] = 1
-        
-    return T
+
     
  
 def load_mnist(normalize=False, flatten=True, one_hot_label=False):
