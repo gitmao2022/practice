@@ -4,10 +4,13 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-02-15 21:39:15
+@LastEditTime : 2025-02-18 21:46:04
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
+
+import abc
+import numpy as np  
 
 class Node(object):
     """
@@ -17,9 +20,6 @@ class Node(object):
         
         self.kargs = kargs
         self.parents = list(parents) 
-
-
-
         self.value = None
         self.jacobi = None
         self.children = []
