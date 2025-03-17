@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-02-18 21:46:04
+@LastEditTime : 2025-03-17 19:10:41
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -52,7 +52,17 @@ class Node(object):
         """
         前向传播，计算节点的值
         """
-        raise NotImplementedError()
+        for node in self.parents:
+            if node.value is None:
+                node.forward()
+        self.set_value(self.compute_value())
+    
+    @abc.abstractmethod
+    def compute_value(self):
+        """
+        计算节点的值
+        """
+        pass
 
     def backward(self, result):
         """
@@ -60,11 +70,10 @@ class Node(object):
         """
         if self.jacobi is None:
             if self is result:
-                self.jacobi = np.mat(np.eye(self.dimension()))
+                self.jacobi = np.eye(self.dimension())
             else:
-                self.jacobi = np.mat(
-                    np.zeros((result.dimension(), self.dimension())))
+                self.jacobi = np.zeros((result.dimension(), self.dimension()))
 
                 for child in self.get_children():
                     if child.value is not None:
-                        self.jacobi += child.backward(result) * child.get_jacobi(self)
+                        self.jacobi +=np.dot(child.backward(result) , child.get_jacobi(self))
