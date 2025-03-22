@@ -22,7 +22,8 @@ class Node(object):
         self.kargs = kargs
         self.graph = kargs.get('graph', default_graph)
         self.need_save = kargs.get('need_save', True)
-        self.gen_node_name(**kargs)
+        self.node_name=kargs.get('node_name','{}:{}'.format(
+            self.__class__.__name__, self.graph.node_count()))
 
         self.parents = list(parents)  # 父节点列表
         self.children = []  # 子节点列表
@@ -35,28 +36,6 @@ class Node(object):
 
         # 将本节点添加到计算图中
         self.graph.add_node(self)
-
-    def get_parents(self):
-        """
-        获取本节点的父节点
-        """
-        return self.parents
-
-    def get_children(self):
-        """
-        获取本节点的子节点
-        """
-        return self.children
-
-    def gen_node_name(self, **kargs):
-        """
-        生成节点名称，如果用户不指定，则根据节点类型生成类似于"MatMul:3"的节点名，
-        如果指定了name_scope，则生成类似"Hidden/MatMul:3"的节点名
-        """
-        self.name = kargs.get('name', '{}:{}'.format(
-            self.__class__.__name__, self.graph.node_count()))
-        if self.graph.name_scope:
-            self.name = '{}/{}'.format(self.graph.name_scope, self.name)
 
     def forward(self):
         """

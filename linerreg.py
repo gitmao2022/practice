@@ -24,6 +24,7 @@ class Linerreg:
         self.learn_rate = learn_rate
         self.iter_times = iter_times
         self.Theta = Theta
+        
 
     def calc_derivatives(self):
 
