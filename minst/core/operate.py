@@ -1,13 +1,18 @@
-# -*- coding: utf-8 -*-
+'''
+@Description  : file content
+@Version      : 1.0
+@Author       : gitmao2022
+@Date         : 2025-03-23 20:46:05
+@LastEditors  : gitmao2022
+@LastEditTime : 2025-03-23 22:49:54
+@FilePath     : operate.py
+@Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
+'''
 
-"""
-Created on Wed Jun  5 15:23:01 2019
 
-@author: zhangjuefei
-"""
 import numpy as np
 
-from ..core import Node
+from .node import Node
 
 
 def fill_diagonal(to_be_filled, filler):
@@ -25,16 +30,11 @@ def fill_diagonal(to_be_filled, filler):
     return to_be_filled
 
 
-class Operator(Node):
-    '''
-    定义操作符抽象类
-    '''
-    pass
 
 
-class Add(Operator):
+class Add(Node):  
     """
-    （多个）矩阵加法
+    加法运算
     """
 
     def compute(self):
@@ -48,7 +48,7 @@ class Add(Operator):
         return np.mat(np.eye(self.dimension()))  # 矩阵之和对其中任一个矩阵的雅可比矩阵是单位矩阵
 
 
-class MatMul(Operator):
+class MatMul(Node):
     """
     矩阵乘法
     """
@@ -76,68 +76,16 @@ class MatMul(Operator):
             return jacobi[row_sort, :][:, col_sort]
 
 
-class Logistic(Operator):
-    """
-    对向量的分量施加Logistic函数
-    """
-
-    def compute(self):
-        x = self.parents[0].value
-        # 对父节点的每个分量施加Logistic
-        self.value = np.mat(
-            1.0 / (1.0 + np.power(np.e, np.where(-x > 1e2, 1e2, -x))))
-
-    def get_jacobi(self, parent):
-        return np.diag(np.mat(np.multiply(self.value, 1 - self.value)).A1)
 
 
-class ReLU(Operator):
-    """
-    对矩阵的元素施加ReLU函数
-    """
 
-    nslope = 0.1  # 负半轴的斜率
-
-    def compute(self):
-        self.value = np.mat(np.where(
-            self.parents[0].value > 0.0,
-            self.parents[0].value,
-            self.nslope * self.parents[0].value)
-        )
-
-    def get_jacobi(self, parent):
-        return np.diag(np.where(self.parents[0].value.A1 > 0.0, 1.0, self.nslope))
-
-
-class SoftMax(Operator):
-    """
-    SoftMax函数
-    """
-
-    @staticmethod
-    def softmax(a):
-        a[a > 1e2] = 1e2  # 防止指数过大
-        ep = np.power(np.e, a)
-        return ep / np.sum(ep)
-
-    def compute(self):
-        self.value = SoftMax.softmax(self.parents[0].value)
-
-    def get_jacobi(self, parent):
-        """
-        我们不实现SoftMax节点的get_jacobi函数，
-        训练时使用CrossEntropyWithSoftMax节点
-        """
-        raise NotImplementedError("Don't use SoftMax's get_jacobi")
-
-
-class Reshape(Operator):
+class Reshape(Node):
     """
     改变父节点的值（矩阵）的形状
     """
 
     def __init__(self, *parent, **kargs):
-        Operator.__init__(self, *parent, **kargs)
+        Node.__init__(self, *parent, **kargs)
 
         self.to_shape = kargs.get('shape')
         assert isinstance(self.to_shape, tuple) and len(self.to_shape) == 2
@@ -151,7 +99,7 @@ class Reshape(Operator):
         return np.mat(np.eye(self.dimension()))
 
 
-class Multiply(Operator):
+class Multiply(Node):
     """
     两个父节点的值是相同形状的矩阵，将它们对应位置的值相乘
     """
@@ -167,14 +115,14 @@ class Multiply(Operator):
             return np.diag(self.parents[0].value.A1)
 
 
-class Convolve(Operator):
+class Convolve(Node):
     """
     以第二个父节点的值为滤波器，对第一个父节点的值做二维离散卷积
     """
 
     def __init__(self, *parents, **kargs):
         assert len(parents) == 2
-        Operator.__init__(self, *parents, **kargs)
+        Node.__init__(self, *parents, **kargs)
 
         self.padded = None
 
@@ -230,13 +178,13 @@ class Convolve(Operator):
         return np.mat(jacobi)
 
 
-class MaxPooling(Operator):
+class MaxPooling(Node):
     """
     最大值池化
     """
 
     def __init__(self, *parent, **kargs):
-        Operator.__init__(self, *parent, **kargs)
+        Node.__init__(self, *parent, **kargs)
 
         self.stride = kargs.get('stride')
         assert self.stride is not None
@@ -293,7 +241,7 @@ class MaxPooling(Operator):
         return self.flag
 
 
-class Concat(Operator):
+class Concat(Node):
     """
     将多个父节点的值连接成向量
     """
@@ -324,7 +272,7 @@ class Concat(Operator):
         return jacobi
 
 
-class ScalarMultiply(Operator):
+class ScalarMultiply(Node):
     """
     用标量（1x1矩阵）数乘一个矩阵
     """
@@ -343,7 +291,7 @@ class ScalarMultiply(Operator):
             return np.mat(np.eye(self.parents[1].dimension())) * self.parents[0].value[0, 0]
 
 
-class Step(Operator):
+class Step(Node):
 
     def compute(self):
         self.value = np.mat(np.where(self.parents[0].value >= 0.0, 1.0, 0.0))
@@ -353,7 +301,7 @@ class Step(Operator):
         return np.zeros(np.where(self.parents[0].value.A1 >= 0.0, 0.0, -1.0))
 
 
-class Welding(Operator):
+class Welding(Node):
 
     def compute(self):
 
