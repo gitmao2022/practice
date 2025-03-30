@@ -4,13 +4,15 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-03-30 14:22:57
+@LastEditTime : 2025-03-30 22:21:11
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
 
-import numpy as np  
-from .graph import Graph, default_graph
+import numpy as np
+# 将当前目录加入系统目录
+from .graph import default_graph
+
 
 class Node(object):
     """
@@ -27,10 +29,10 @@ class Node(object):
         self.need_save = kargs.get('need_save', True)
         self.node_name = kargs.get('node_name', '{}:{}'.format( 
             self.__class__.__name__, self.graph.node_count()))
-         # 将本节点添加到父节点的子节点列表中 
-        for parent in self.parents: 
-            parent.children.append(self) 
-        # 将本节点添加到计算图中 
+        # 将本节点添加到父节点的子节点列表中 
+        for parent in self.parents:
+            parent.children.append(self)
+        # 将本节点添加到计算图中
         self.graph.add_node(self)
     
     def set_value(self, value):
@@ -65,6 +67,12 @@ class Node(object):
         """
         pass
 
+    def dimension(self):
+        """
+        返回本节点的值展平成向量后的维数
+        """
+        return self.value.shape[0] * self.value.shape[1]
+    
     def backward(self, result):
         """
         反向传播，计算结果节点对本节点的雅可比矩阵

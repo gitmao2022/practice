@@ -51,7 +51,8 @@ output = ms.ops.Add(ms.ops.MatMul(w, x), b)
 predict = ms.ops.Step(output)
 
 # 损失函数
-#loss = ms.ops.loss.PerceptionLoss(ms.ops.MatMul(label, output))
+# loss = ms.ops.loss.PerceptionLoss(ms.ops.MatMul(label, output))
+
 loss=ms.ops.LogLoss(ms.ops.MatMul(label, output))
 
 # 学习率
