@@ -4,40 +4,18 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-03-23 16:36:59
+@LastEditTime : 2025-03-24 13:22:19
 @FilePath     : loss.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
-@Author: chenzhen
-@Date: 2020-04-03 19:40:23
-@LastEditTime: 2020-04-20 16:57:33
-@LastEditors: chenzhen
-@Description:
-'''
-# -*- coding: utf-8 -*-
-"""
-Created on Wed July  9 15:13:01 2019
 
-@author: chenzhen
-"""
 
 import numpy as np
-
-from ..core import Node
-from ..ops import SoftMax
-
-
-class LossFunction(Node):
-    '''
-    定义损失函数抽象类
-    '''
-    pass
+from node import Node
+from activity import SoftMax
 
 
-class LogLoss(LossFunction):
+class LogLoss(Node):
 
     def compute(self):
 
@@ -55,7 +33,7 @@ class LogLoss(LossFunction):
         return np.diag(diag.ravel())
 
 
-class CrossEntropyWithSoftMax(LossFunction):
+class CrossEntropyWithSoftMax(Node):
     """
     对第一个父节点施加SoftMax之后，再以第二个父节点为标签One-Hot向量计算交叉熵
     """
@@ -74,7 +52,7 @@ class CrossEntropyWithSoftMax(LossFunction):
             return (-np.log(prob)).T
 
 
-class PerceptionLoss(LossFunction):
+class PerceptionLoss(Node):
     """
     感知机损失，输入为正时为0，输入为负时为输入的相反数
     """
