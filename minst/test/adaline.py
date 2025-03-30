@@ -51,7 +51,7 @@ output = operate_node.Add(ops.MatMul(w, x), b)
 predict = operate_node.Step(output)
 
 # 损失函数
-#loss = ms.ops.loss.PerceptionLoss(ms.ops.MatMul(label, output))
+# loss = ms.ops.loss.PerceptionLoss(ms.ops.MatMul(label, output))
 loss=loss_node.LogLoss(ms.ops.MatMul(label, output))
 
 # 学习率
