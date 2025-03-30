@@ -4,13 +4,13 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-03-22 16:34:56
+@LastEditTime : 2025-03-30 14:22:57
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
 
-import abc
 import numpy as np  
+from .graph import Graph, default_graph
 
 class Node(object):
     """

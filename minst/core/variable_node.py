@@ -1,6 +1,6 @@
 
 from .node import Node
-
+import numpy as np 
 class Variable(Node):
     """
     变量节点

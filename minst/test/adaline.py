@@ -3,13 +3,13 @@ sys.path.append('../..')
 import os
 sys.path.append(os.getcwd())
 import numpy as np
-from ..core import Variable, operate
+from minst.core import *
 
 """
 制造训练样本。根据均值171，标准差6的正态分布采样500个男性身高，根据均值158，
 标准差5的正态分布采样500个女性身高。根据均值70，标准差10的正态分布采样500个
 男性体重，根据均值57，标准差8的正态分布采样500个女性体重。根据均值16，标准差
-2的正态分布采样500个男性体脂率，根据均值22，标准差2的正态分布采样500个女性体
+2的正态分布采样500个男性5体脂率，根据均值22，标准差2的正态分布采样500个女性体
 脂率。构造500个1，作为男性标签，构造500个-1，作为女性标签。将数据组装成一个
 1000 x 4的numpy数组，前3列分别是身高、体重和体脂率，最后一列是性别标签。
 """
@@ -35,19 +35,19 @@ np.random.shuffle(train_set)
 
 
 # 构造计算图：输入向量，是一个3x1矩阵，不需要初始化，不参与训练
-x = Variable(dim=(3, 1), init=False, trainable=False)
+x =variable.Variable(dim=(3, 1), init=False, trainable=False)
 
 # 类别标签，1男，-1女
-label = Variable(dim=(1, 1), init=False, trainable=False)
+label =variable.Variable(dim=(1, 1), init=False, trainable=False)
 
 # 权重向量，是一个1x3矩阵，需要初始化，参与训练
-w = variable.Variable(dim=(1, 3), init=True, trainable=True)
+w =variable.Variable(dim=(1, 3), init=True, trainable=True)
 
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
-b = Variable(dim=(1, 1), init=True, trainable=True)
+b =variable.Variable(dim=(1, 1), init=True, trainable=True)
 
 # ADALINE的预测输出
-output = operate.Add(ms.ops.MatMul(w, x), b)
+output = operate.Add(ops.MatMul(w, x), b)
 predict = operate.Step(output)
 
 # 损失函数

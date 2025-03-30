@@ -11,8 +11,8 @@
 
 
 import numpy as np
-from node import Node
-from activity import SoftMax
+from .node import Node
+from .activity import SoftMax
 
 
 class LogLoss(Node):
