@@ -35,24 +35,24 @@ np.random.shuffle(train_set)
 
 
 # 构造计算图：输入向量，是一个3x1矩阵，不需要初始化，不参与训练
-x =variable.Variable(dim=(3, 1), init=False, trainable=False)
+x =variable_node.Variable(dim=(3, 1), init=False, trainable=False)
 
 # 类别标签，1男，-1女
-label =variable.Variable(dim=(1, 1), init=False, trainable=False)
+label =variable_node.Variable(dim=(1, 1), init=False, trainable=False)
 
 # 权重向量，是一个1x3矩阵，需要初始化，参与训练
-w =variable.Variable(dim=(1, 3), init=True, trainable=True)
+w =variable_node.Variable(dim=(1, 3), init=True, trainable=True)
 
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
-b =variable.Variable(dim=(1, 1), init=True, trainable=True)
+b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 
 # ADALINE的预测输出
-output = operate.Add(ops.MatMul(w, x), b)
-predict = operate.Step(output)
+output = operate_node.Add(ops.MatMul(w, x), b)
+predict = operate_node.Step(output)
 
 # 损失函数
 #loss = ms.ops.loss.PerceptionLoss(ms.ops.MatMul(label, output))
-loss=operate.LogLoss(ms.ops.MatMul(label, output))
+loss=loss_node.LogLoss(ms.ops.MatMul(label, output))
 
 # 学习率
 learning_rate = 0.0001
@@ -92,7 +92,7 @@ for epoch in range(50):
         b.set_value(b.value - learning_rate * b.jacobi)
 
         # default_graph对象保存了所有节点，调用clear_jacobi方法清除所有节点的雅可比矩阵
-        ms.default_graph.clear_jacobi()
+        default_graph.clear_jacobi()
 
     # 每个epoch结束后评价模型的正确率
     pred = []
