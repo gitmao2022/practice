@@ -48,10 +48,11 @@ b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 
 # ADALINE的预测输出
 output = operate_node.Add(operate_node.MatMul(w, x), b)
-predict = operate_node.Step(output)
+predict = activity_node.Step(output)
 
 # 损失函数
-loss = loss_node.LogLoss(operate_node.MatMul(label, output))  
+#loss = ms.ops.loss.PerceptionLoss(ms.ops.MatMul(label, output))
+loss=loss_node.LogLoss(ms.ops.MatMul(label, output))
 
 # 学习率
 learning_rate = 0.0001

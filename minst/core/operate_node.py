@@ -4,8 +4,8 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-03-23 22:49:54
-@FilePath     : operate.py
+@LastEditTime : 2025-03-31 13:50:41
+@FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
 
@@ -290,12 +290,16 @@ class ScalarMultiply(Node):
 
 
 class Step(Node):
+    """
+    阶跃函数节点，计算输入矩阵的阶跃函数值。
+    阶跃函数的定义为：当输入值大于等于 0 时输出 1，否则输出 0。
+    """
 
     def compute(self):
-        self.value = np.mat(np.where(self.parents[0].value >= 0.0, 1.0, 0.0))
+        self.value = np.where(self.parents[0].value >= 0.0, 1.0, 0.0)
 
     def get_jacobi(self, parent):
-        np.mat(np.eye(self.dimension()))
+        np.eye(self.dimension())
         return np.zeros(np.where(self.parents[0].value.A1 >= 0.0, 0.0, -1.0))
 
 
