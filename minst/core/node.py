@@ -4,13 +4,13 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-03-30 22:21:11
+@LastEditTime : 2025-04-02 16:08:10
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
 
 import numpy as np
-# 将当前目录加入系统目录
+from abc import abstractmethod
 from .graph import default_graph
 
 
@@ -34,7 +34,7 @@ class Node(object):
             parent.children.append(self)
         # 将本节点添加到计算图中
         self.graph.add_node(self)
-    
+
     def set_value(self, value):
         """
         设置节点的值
@@ -61,6 +61,13 @@ class Node(object):
                 node.forward()
         self.set_value(self.compute_value())
     
+    def shape(self):
+        """
+        返回节点值的形状
+        """
+        return self.value.shape
+    
+    @abstractmethod
     def compute_value(self):
         """
         计算节点的值
@@ -82,8 +89,8 @@ class Node(object):
                 self.jacobi = np.eye(self.dimension())
             else:
                 self.jacobi = np.zeros((result.dimension(), self.dimension()))
-                for child in self.get_children():
+                for child in self.children:
                     if child.value is not None:
                         self.jacobi +=np.dot(child.backward(result), child.get_jacobi(self))
-
+        return self.jacobi
     

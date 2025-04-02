@@ -47,6 +47,18 @@ class Node(object):
 
         self.compute()
 
+    def get_parents(self): 
+        """ 
+        获取本节点的父节点 
+        """ 
+        return self.parents 
+
+    def get_children(self): 
+        """ 
+        获取本节点的子节点 
+        """ 
+        return self.children 
+
     @abc.abstractmethod
     def compute(self):
         """
@@ -81,12 +93,17 @@ class Node(object):
         清空结果节点对本节点的雅可比矩阵
         """
         self.jacobi = None
-
+    def shape(self):
+        """
+        返回本节点的值作为矩阵的形状：（行数，列数）
+        """
+        return self.value.shape 
+    
     def dimension(self):
         """
         返回本节点的值展平成向量后的维数
         """
-        return self.value.shape[0] * self.value.shape[1]
+        return self.shape[0] * self.shape[1]
 
     def shape(self):
         """

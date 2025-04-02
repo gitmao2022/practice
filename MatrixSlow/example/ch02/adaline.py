@@ -3,7 +3,7 @@ sys.path.append('../..')
 import os
 sys.path.append(os.getcwd())
 import numpy as np
-import nemat.MatrixSlow.matrixslow.matrixslow as ms
+import MatrixSlow.matrixslow.matrixslow as ms
 
 """
 制造训练样本。根据均值171，标准差6的正态分布采样500个男性身高，根据均值158，

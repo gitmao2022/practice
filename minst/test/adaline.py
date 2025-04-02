@@ -34,6 +34,8 @@ train_set = np.array([np.concatenate((male_heights, female_heights)),
 np.random.shuffle(train_set)
 
 
+default_graph = graph.Graph()
+
 # 构造计算图：输入向量，是一个3x1矩阵，不需要初始化，不参与训练
 x =variable_node.Variable(dim=(3, 1), init=False, trainable=False)
 
@@ -45,14 +47,14 @@ w =variable_node.Variable(dim=(1, 3), init=True, trainable=True)
 
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
 b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
-
+wx=operate_node.MatMul(w,x)
 # ADALINE的预测输出
-output = operate_node.Add(operate_node.MatMul(w, x), b)
+output = operate_node.Add(wx, b)
 predict = activity_node.Step(output)
 
 # 损失函数
 #loss = ms.ops.loss.PerceptionLoss(ms.ops.MatMul(label, output))
-loss=loss_node.LogLoss(ms.ops.MatMul(label, output))
+loss=loss_node.LogLoss(operate_node.MatMul(label, output))
 
 # 学习率
 learning_rate = 0.0001

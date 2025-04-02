@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-03-31 13:50:41
+@LastEditTime : 2025-04-02 16:08:42
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -37,12 +37,13 @@ class Add(Node):
     加法运算
     """
 
-    def compute(self):
+    def compute_value(self):
         # assert len(self.parents) == 2 and self.parents[0].shape() == self.parents[1].shape()
-        self.value = np.mat(np.zeros(self.parents[0].shape()))
+        value = np.zeros(self.parents[0].value.shape)
 
         for parent in self.parents:
-            self.value += parent.value
+            value += parent.value
+        return value
 
     def get_jacobi(self, parent):
         return np.mat(np.eye(self.dimension()))  # 矩阵之和对其中任一个矩阵的雅可比矩阵是单位矩阵
@@ -53,10 +54,10 @@ class MatMul(Node):
     矩阵乘法
     """
 
-    def compute(self):
-        assert len(self.parents) == 2 and self.parents[0].shape()[
-            1] == self.parents[1].shape()[0]
-        self.value = self.parents[0].value * self.parents[1].value
+    def compute_value(self):
+        assert len(self.parents) == 2 and self.parents[0].value.shape[
+            1] == self.parents[1].value.shape[0]
+        return self.parents[0].value * self.parents[1].value
 
     def get_jacobi(self, parent):
         """
@@ -89,7 +90,7 @@ class Reshape(Node):
         assert isinstance(self.to_shape, tuple) and len(self.to_shape) == 2
 
 
-    def compute(self):
+    def compute_value(self):
         self.value = self.parents[0].value.reshape(self.to_shape)
 
     def get_jacobi(self, parent):
@@ -102,8 +103,8 @@ class Multiply(Node):
     两个父节点的值是相同形状的矩阵，将它们对应位置的值相乘
     """
 
-    def compute(self):
-        self.value = np.multiply(self.parents[0].value, self.parents[1].value)
+    def compute_value(self):
+        return np.multiply(self.parents[0].value, self.parents[1].value)
 
     def get_jacobi(self, parent):
 
@@ -124,7 +125,7 @@ class Convolve(Node):
 
         self.padded = None
 
-    def compute(self):
+    def compute_value(self):
 
         data = self.parents[0].value  # 图像
         kernel = self.parents[1].value  # 滤波器
@@ -197,7 +198,7 @@ class MaxPooling(Node):
 
         self.flag = None
 
-    def compute(self):
+    def compute_value(self):
         data = self.parents[0].value  # 输入特征图
         w, h = data.shape  # 输入特征图的宽和高
         dim = w * h
@@ -244,7 +245,7 @@ class Concat(Node):
     将多个父节点的值连接成向量
     """
 
-    def compute(self):
+    def compute_value(self):
         assert len(self.parents) > 0
 
         # 将所有父节点矩阵展平并连接成一个向量
@@ -275,7 +276,7 @@ class ScalarMultiply(Node):
     用标量（1x1矩阵）数乘一个矩阵
     """
 
-    def compute(self):
+    def compute_value(self):
         assert self.parents[0].shape() == (1, 1)  # 第一个父节点是标量
         self.value = np.multiply(self.parents[0].value, self.parents[1].value)
 
@@ -290,12 +291,8 @@ class ScalarMultiply(Node):
 
 
 class Step(Node):
-    """
-    阶跃函数节点，计算输入矩阵的阶跃函数值。
-    阶跃函数的定义为：当输入值大于等于 0 时输出 1，否则输出 0。
-    """
 
-    def compute(self):
+    def compute_value(self):
         self.value = np.where(self.parents[0].value >= 0.0, 1.0, 0.0)
 
     def get_jacobi(self, parent):
@@ -305,7 +302,7 @@ class Step(Node):
 
 class Welding(Node):
 
-    def compute(self):
+    def compute_value(self):
 
         assert len(self.parents) == 1 and self.parents[0] is not None
         self.value = self.parents[0].value

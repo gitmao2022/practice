@@ -4,8 +4,8 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-03-23 22:47:57
-@FilePath     : activity.py
+@LastEditTime : 2025-04-02 08:48:25
+@FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
 
@@ -19,7 +19,7 @@ class Logistic(Node):
     对向量的分量施加Logistic函数
     """
 
-    def compute(self):
+    def compute_value(self):
         x = self.parents[0].value
         # 对父节点的每个分量施加Logistic
         self.value = np.mat(
@@ -36,7 +36,7 @@ class ReLU(Node):
 
     nslope = 0.1  # 负半轴的斜率
 
-    def compute(self):
+    def compute_value(self):
         self.value = np.mat(np.where(
             self.parents[0].value > 0.0,
             self.parents[0].value,
@@ -58,7 +58,7 @@ class SoftMax(Node):
         ep = np.power(np.e, a)
         return ep / np.sum(ep)
 
-    def compute(self):
+    def compute_value(self):
         self.value = SoftMax.softmax(self.parents[0].value)
 
     def get_jacobi(self, parent):
@@ -67,3 +67,22 @@ class SoftMax(Node):
         训练时使用CrossEntropyWithSoftMax节点
         """
         raise NotImplementedError("Don't use SoftMax's get_jacobi")
+    
+
+class Step(Node):
+    
+    def compute_value(self):
+        """
+        计算Step函数的值：
+        如果父节点的值大于等于0，则输出1；否则输出0。
+        """
+        return np.where(self.parents[0].value >= 0.0, 1.0, 0.0)
+
+    def get_jacobi(self, parent):
+        """
+        计算Step函数的雅可比矩阵：
+        Step函数的导数在大多数点为0，在0点处导数不存在。
+        返回一个全零矩阵。
+        """
+        np.eye(self.dimension())
+        return np.zeros(np.where(self.parents[0].value.A1 >= 0.0, 0.0, -1.0))
