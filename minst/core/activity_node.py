@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-02 08:48:25
+@LastEditTime : 2025-04-02 21:58:52
 @FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -72,17 +72,7 @@ class SoftMax(Node):
 class Step(Node):
     
     def compute_value(self):
-        """
-        计算Step函数的值：
-        如果父节点的值大于等于0，则输出1；否则输出0。
-        """
         return np.where(self.parents[0].value >= 0.0, 1.0, 0.0)
 
     def get_jacobi(self, parent):
-        """
-        计算Step函数的雅可比矩阵：
-        Step函数的导数在大多数点为0，在0点处导数不存在。
-        返回一个全零矩阵。
-        """
-        np.eye(self.dimension())
-        return np.zeros(np.where(self.parents[0].value.A1 >= 0.0, 0.0, -1.0))
+        return np.zeros(self.dimension())

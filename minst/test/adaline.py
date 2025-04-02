@@ -34,7 +34,7 @@ train_set = np.array([np.concatenate((male_heights, female_heights)),
 np.random.shuffle(train_set)
 
 
-default_graph = graph.Graph()
+default_graph = graph.default_graph
 
 # 构造计算图：输入向量，是一个3x1矩阵，不需要初始化，不参与训练
 x =variable_node.Variable(dim=(3, 1), init=False, trainable=False)
@@ -58,9 +58,9 @@ loss=loss_node.LogLoss(operate_node.MatMul(label, output))
 
 # 学习率
 learning_rate = 0.0001
-
+# default_graph.draw()
 # 训练执行50个epoch
-for epoch in range(50):
+for epoch in range(200):
 
     # 遍历训练集中的样本
     for i in range(len(train_set)):
@@ -101,7 +101,7 @@ for epoch in range(50):
 
     # 遍历训练集，计算当前模型对每个样本的预测值
     for i in range(len(train_set)):
-
+        
         features = np.mat(train_set[i, :-1]).T
         x.set_value(features)
 
@@ -112,7 +112,7 @@ for epoch in range(50):
     pred = np.array(pred) * 2 - 1  # 将1/0结果转化成1/-1结果，好与训练标签的约定一致
 
     # 判断预测结果与样本标签相同的数量与训练集总数量之比，即模型预测的正确率
-    accuracy = (train_set[:, -1] == pred).astype(np.int).sum() / len(train_set)
+    accuracy = (train_set[:, -1] == pred).astype(np.int32).sum() / len(train_set)
 
     # 打印当前epoch数和模型在训练集上的正确率
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

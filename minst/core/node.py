@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-02 16:08:10
+@LastEditTime : 2025-04-02 22:21:17
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -52,6 +52,12 @@ class Node(object):
         抽象方法，计算本节点对某个父节点的雅可比矩阵
         """
 
+    def clear_jacobi(self):
+        """
+        清空结果节点对本节点的雅可比矩阵
+        """
+        self.jacobi = None
+
     def forward(self):
         """
         前向传播，计算节点的值
@@ -67,6 +73,12 @@ class Node(object):
         """
         return self.value.shape
     
+    def clear_value(self,recursive=True):
+        self.value = None
+        if recursive:
+            for child in self.children:
+                child.clear_value()
+
     @abstractmethod
     def compute_value(self):
         """
