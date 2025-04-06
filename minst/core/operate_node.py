@@ -39,7 +39,7 @@ class Add(Node):
 
     def compute_value(self):
         # assert len(self.parents) == 2 and self.parents[0].shape() == self.parents[1].shape()
-        value = np.zeros(self.parents[0].value.shape)
+        value = np.zeros(self.parents[0].shape)
 
         for parent in self.parents:
             value += parent.value
@@ -55,8 +55,8 @@ class MatMul(Node):
     """
 
     def compute_value(self):
-        assert len(self.parents) == 2 and self.parents[0].value.shape[
-            1] == self.parents[1].value.shape[0]
+        assert len(self.parents) == 2 and self.parents[0].shape[
+            1] == self.parents[1].shape[0]
         return self.parents[0].value * self.parents[1].value
 
     def get_jacobi(self, parent):
@@ -71,9 +71,9 @@ class MatMul(Node):
         else:
             jacobi = fill_diagonal(zeros, self.parents[0].value)
             row_sort = np.arange(self.dimension()).reshape(
-                self.shape()[::-1]).T.ravel()
+                self.shape[::-1]).T.ravel()
             col_sort = np.arange(parent.dimension()).reshape(
-                parent.shape()[::-1]).T.ravel()
+                parent.shape[::-1]).T.ravel()
             return jacobi[row_sort, :][:, col_sort]
 
 

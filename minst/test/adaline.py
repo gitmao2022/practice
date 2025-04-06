@@ -33,7 +33,6 @@ train_set = np.array([np.concatenate((male_heights, female_heights)),
 # 随机打乱样本顺序
 np.random.shuffle(train_set)
 
-
 default_graph = graph.default_graph
 
 # 构造计算图：输入向量，是一个3x1矩阵，不需要初始化，不参与训练

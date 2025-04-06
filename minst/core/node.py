@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-02 22:21:17
+@LastEditTime : 2025-04-06 16:45:34
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -67,6 +67,7 @@ class Node(object):
                 node.forward()
         self.set_value(self.compute_value())
     
+    @property
     def shape(self):
         """
         返回节点值的形状
@@ -90,7 +91,7 @@ class Node(object):
         """
         返回本节点的值展平成向量后的维数
         """
-        return self.value.shape[0] * self.value.shape[1]
+        return self.shape[0] * self.shape[1]
     
     def backward(self, result):
         """
