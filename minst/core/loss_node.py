@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-02 08:07:31
+@LastEditTime : 2025-04-13 10:47:16
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -26,7 +26,6 @@ class LogLoss(Node):
         return np.log(1 + np.power(np.e, np.where(-x > 1e2, 1e2, -x)))
 
     def get_jacobi(self, parent):
-
         x = parent.value
         diag = -1 / (1 + np.power(np.e, np.where(x > 1e2, 1e2, x)))
 
