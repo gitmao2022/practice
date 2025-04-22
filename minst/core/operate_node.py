@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-02 16:08:42
+@LastEditTime : 2025-04-22 22:11:29
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -57,7 +57,7 @@ class MatMul(Node):
     def compute_value(self):
         assert len(self.parents) == 2 and self.parents[0].shape[
             1] == self.parents[1].shape[0]
-        return self.parents[0].value * self.parents[1].value
+        return np.dot(self.parents[0].value,self.parents[1].value)
 
     def get_jacobi(self, parent):
         """
