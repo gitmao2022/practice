@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-22 22:11:29
+@LastEditTime : 2025-04-24 22:39:37
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -38,11 +38,12 @@ class Add(Node):
     """
 
     def compute_value(self):
-        # assert len(self.parents) == 2 and self.parents[0].shape() == self.parents[1].shape()
-        value = np.zeros(self.parents[0].shape)
+        assert len(self.parents) == 2
+        value=self.parents[0].value + self.parents[1].value
+        # value = np.zeros(self.parents[0].shape)
 
-        for parent in self.parents:
-            value += parent.value
+        # for parent in self.parents:
+        #     value += parent.value
         return value
 
     def get_jacobi(self, parent):

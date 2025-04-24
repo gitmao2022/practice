@@ -24,4 +24,4 @@ class Variable(Node):
         为变量赋值
         """
         self.clear_value()
-        self.value = value
+        self.value = value.reshape(self.dim)
