@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-02 21:58:52
+@LastEditTime : 2025-04-29 21:23:19
 @FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -22,9 +22,7 @@ class Logistic(Node):
     def compute_value(self):
         x = self.parents[0].value
         # 对父节点的每个分量施加Logistic
-        self.value = np.mat(
-            1.0 / (1.0 + np.power(np.e, np.where(-x > 1e2, 1e2, -x))))
-
+        return 1.0 / (1.0 + np.power(np.e, np.where(-x > 1e2, 1e2, -x)))
     def get_jacobi(self, parent):
         return np.diag(np.mat(np.multiply(self.value, 1 - self.value)).A1)
 
@@ -37,7 +35,7 @@ class ReLU(Node):
     nslope = 0.1  # 负半轴的斜率
 
     def compute_value(self):
-        self.value = np.mat(np.where(
+        return np.mat(np.where(
             self.parents[0].value > 0.0,
             self.parents[0].value,
             self.nslope * self.parents[0].value)
@@ -59,7 +57,7 @@ class SoftMax(Node):
         return ep / np.sum(ep)
 
     def compute_value(self):
-        self.value = SoftMax.softmax(self.parents[0].value)
+        return SoftMax.softmax(self.parents[0].value)
 
     def get_jacobi(self, parent):
         """
