@@ -54,7 +54,11 @@ class MatMul(Node):
     """
     矩阵乘法
     """
+    def __init__(self, *parents, transposition=False,**kargs):
+        super().__init__(*parents, **kargs)
+        self.transposition=transposition
 
+        
     def compute_value(self):
         assert len(self.parents) == 2 and self.parents[0].shape[
             1] == self.parents[1].shape[0]
