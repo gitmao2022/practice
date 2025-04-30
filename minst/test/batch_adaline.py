@@ -43,11 +43,8 @@ b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
 predict=activity_node.Logistic(output)
-predict.forward()
-predict.value=predict.value.T
-lp=operate_node.MatMul(label,predict)
-loss=loss_node.LogLoss(lp)
+loss=loss_node.Sigmoid_Loss(predict,label)
 loss.forward()
 # print('label shape:',label.value.shape,'predict shape:',predict.value.shape)
-print('lp.value',lp.value)
+print('loss.value',loss.value)
 

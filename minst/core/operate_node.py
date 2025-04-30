@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-24 22:39:37
+@LastEditTime : 2025-04-30 10:36:23
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -47,7 +47,7 @@ class Add(Node):
         return value
 
     def get_jacobi(self, parent):
-        return np.mat(np.eye(self.dimension()))  # 矩阵之和对其中任一个矩阵的雅可比矩阵是单位矩阵
+        return np.eye(self.dimension())  # 矩阵之和对其中任一个矩阵的雅可比矩阵是单位矩阵
 
 
 class MatMul(Node):

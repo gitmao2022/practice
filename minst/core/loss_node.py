@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-13 10:47:16
+@LastEditTime : 2025-04-30 16:16:45
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -57,7 +57,7 @@ class PerceptionLoss(Node):
     """
 
     def compute_value(self):
-        self.value = np.mat(np.where(
+        return np.mat(np.where(
             self.parents[0].value >= 0.0, 0.0, -self.parents[0].value))
 
     def get_jacobi(self, parent):
@@ -67,3 +67,15 @@ class PerceptionLoss(Node):
         """
         diag = np.where(parent.value >= 0.0, 0.0, -1)
         return np.diag(diag.ravel())
+
+class Sigmoid_Loss(Node):
+    def compute_value(self):
+        label=self.parents[1].value
+        result=self.parents[0].value
+        return label*np.log(result)+(1-label)*np.log(1-result)
+    def get_jacobi(self,parent):
+        if parent is self.parents[0]:
+            return -1/(self.parents[0].value*(1-self.parents[0].value))
+        else:
+            return -1/(self.parents[0].value*(1-self.parents[0].value))
+    
