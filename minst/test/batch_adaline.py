@@ -15,7 +15,7 @@ male_bfrs = np.random.normal(16, 2, 500)
 female_bfrs = np.random.normal(22, 2, 500)
 
 male_labels = [1] * 500
-female_labels = [-1] * 500
+female_labels = [0] * 500
 
 train_set = np.array([np.concatenate((male_heights, female_heights)),
                       np.concatenate((male_weights, female_weights)),
