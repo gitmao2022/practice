@@ -44,7 +44,13 @@ xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
 predict=activity_node.Logistic(output)
 loss=loss_node.Sigmoid_Loss(predict,label)
-loss.forward()
 # print('label shape:',label.value.shape,'predict shape:',predict.value.shape)
-print('loss.value',loss.value)
+for i in range(50):
+    loss.forward()
+    print('epoch:', i, 'loss:', np.sum(loss.value))
+    w.backward(loss)
+    b.backward(loss)
+    w.set_value(w.value - learning_rate * np.mean(w.jacobi))
+    b.set_value(b.value - learning_rate * np.mean(b.jacobi))
 
+    

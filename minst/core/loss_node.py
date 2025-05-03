@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-30 17:14:07
+@LastEditTime : 2025-05-03 21:15:24
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -72,12 +72,12 @@ class Sigmoid_Loss(Node):
     def compute_value(self):
         label=self.parents[1].value
         result=self.parents[0].value
-        return label*np.log(result)+(1-label)*np.log(1-result)
+        return -label*np.log(result)-(1-label)*np.log(1-result)
     def get_jacobi(self,parent):
         label=self.parents[1].value
         result=self.parents[0].value
         if parent is self.parents[0]:
-            return np.diag(label/result-(1-label)/(1-result))
+            return np.diag((-label/result+(1-label)/(1-result)).flatten())
         elif parent is self.parents[1]:
-            return np.diag(np.log(result)-np.log(1-result))
+            return np.diag((-np.log(result)+np.log(1-result)).flatten())
     

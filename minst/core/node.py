@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-24 22:18:48
+@LastEditTime : 2025-05-03 21:16:54
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -93,6 +93,7 @@ class Node(object):
         """
         return self.shape[0] * self.shape[1]
     
+    @abstractmethod
     def backward(self, result):
         """
         反向传播，计算结果节点对本节点的雅可比矩阵
