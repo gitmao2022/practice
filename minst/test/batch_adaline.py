@@ -40,7 +40,7 @@ w =variable_node.Variable(dim=(3, 1), init=True, trainable=True)
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
 b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 
-learning_rate = 0.01
+learning_rate = 0.001
 xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
 predict=activity_node.Logistic(output)
@@ -51,6 +51,14 @@ for i in range(50):
     print('epoch:', i, 'loss:', np.sum(loss.value))
     w.backward(loss)
     b.backward(loss)
-    w.set_value(w.value - learning_rate * np.mean(w.jacobi))
-    b.set_value(b.value - learning_rate * np.mean(b.jacobi))
+    w_temp_value=w.value.copy()
+    b_temp_value=b.value.copy()
+    w.clear_value()
+    b.clear_value()
+    w_jacobi_mean=np.mean(w.jacobi,axis=0).T.reshape(w_temp_value.shape)
+    b_jacobi_mean=np.mean(b.jacobi,axis=0).T.reshape(b_temp_value.shape)
+    print("w_jacobi_mean",w_jacobi_mean)
+    print("b_jacobi_mean",b_jacobi_mean)
+    w.set_value(w_temp_value - learning_rate * w_jacobi_mean)
+    b.set_value(b_temp_value - learning_rate * b_jacobi_mean)
     default_graph.clear_jacobi()
