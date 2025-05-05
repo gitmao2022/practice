@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-05-04 16:25:16
+@LastEditTime : 2025-05-05 19:26:35
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -32,7 +32,7 @@ def fill_diagonal(to_be_filled, filler):
 
 
 
-class Add(Node):  
+class Add(Node):
     """
     加法运算
     """

@@ -40,7 +40,7 @@ w =variable_node.Variable(dim=(3, 1), init=True, trainable=True)
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
 b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 
-learning_rate = 0.001
+learning_rate = 0.01
 xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
 predict=activity_node.Logistic(output)
