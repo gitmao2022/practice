@@ -24,7 +24,7 @@ class Logistic(Node):
         # 对父节点的每个分量施加Logistic
         return 1.0 / (1.0 + np.power(np.e, np.where(-x > 1e2, 1e2, -x)))
     def get_jacobi(self, parent):
-        return np.diag(np.mat(np.multiply(self.value, 1 - self.value)).A1)
+        return np.diag(np.multiply(self.value, 1 - self.value).flatten())
 
 
 class ReLU(Node):

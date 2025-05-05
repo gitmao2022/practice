@@ -74,6 +74,7 @@ class Node(object):
         """
         return self.value.shape
     
+    
     def clear_value(self,recursive=True):
         self.value = None
         if recursive:
@@ -105,6 +106,7 @@ class Node(object):
                 self.jacobi = np.zeros((result.dimension(), self.dimension()))
                 for child in self.children:
                     if child.value is not None:
+                        # print(child.node_name,self.node_name,'child.jacobi.shape:', child.get_jacobi(self).shape)
                         self.jacobi +=np.dot(child.backward(result), child.get_jacobi(self))
         return self.jacobi
     

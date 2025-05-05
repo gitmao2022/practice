@@ -23,6 +23,7 @@ train_set = np.array([np.concatenate((male_heights, female_heights)),
                       np.concatenate((male_labels, female_labels))]).T
 np.random.shuffle(train_set)
 
+default_graph = graph.default_graph
 batch_length = len(train_set)
 # 构造计算图：输入向量，是一个100x1矩阵，不需要初始化，不参与训练
 x =variable_node.Variable(dim=(batch_length, 3), init=False, trainable=False)
@@ -39,7 +40,7 @@ w =variable_node.Variable(dim=(3, 1), init=True, trainable=True)
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
 b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 
-
+learning_rate = 0.01
 xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
 predict=activity_node.Logistic(output)
@@ -52,5 +53,4 @@ for i in range(50):
     b.backward(loss)
     w.set_value(w.value - learning_rate * np.mean(w.jacobi))
     b.set_value(b.value - learning_rate * np.mean(b.jacobi))
-
-    
+    default_graph.clear_jacobi()

@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-04-30 10:36:23
+@LastEditTime : 2025-05-04 16:25:16
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -40,14 +40,14 @@ class Add(Node):
     def compute_value(self):
         assert len(self.parents) == 2
         value=self.parents[0].value + self.parents[1].value
-        # value = np.zeros(self.parents[0].shape)
-
-        # for parent in self.parents:
-        #     value += parent.value
         return value
 
     def get_jacobi(self, parent):
-        return np.eye(self.dimension())  # 矩阵之和对其中任一个矩阵的雅可比矩阵是单位矩阵
+        if parent.value.shape==self.value.shape:
+            #not use broadcast
+            return np.eye(self.shape[0]*self.shape[1])
+        else:
+            return np.ones((self.shape[0],parent.shape[1]))
 
 
 class MatMul(Node):
@@ -70,7 +70,7 @@ class MatMul(Node):
         """
 
         # 很神秘，靠注释说不明白了
-        zeros = np.mat(np.zeros((self.dimension(), parent.dimension())))
+        zeros = np.zeros((self.dimension(), parent.dimension()))
         if parent is self.parents[0]:
             return fill_diagonal(zeros, self.parents[1].value.T)
         else:

@@ -65,10 +65,10 @@ for epoch in range(200):
     for i in range(len(train_set)):
 
         # 取第i个样本的前4列（除最后一列的所有列），构造3x1矩阵对象
-        features = np.mat(train_set[i, :-1]).T
+        features = train_set[i, :-1].T
 
         # 取第i个样本的最后一列，是该样本的性别标签（1男，-1女），构造1x1矩阵对象
-        l = np.mat(train_set[i, -1])
+        l = train_set[i, -1]
 
         # 将特征赋给x节点，将标签赋给label节点
         x.set_value(features)
@@ -101,7 +101,7 @@ for epoch in range(200):
     # 遍历训练集，计算当前模型对每个样本的预测值
     for i in range(len(train_set)):
         
-        features = np.mat(train_set[i, :-1]).T
+        features = train_set[i, :-1].T
         x.set_value(features)
 
         # 在模型的predict节点上执行前向传播
