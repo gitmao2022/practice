@@ -5,17 +5,17 @@ sys.path.append(os.getcwd())
 import numpy as np
 from minst.core import *
 
-male_heights = np.random.normal(171, 6, 500)
-female_heights = np.random.normal(158, 5, 500)
+male_heights = np.random.normal(171, 6, 5)
+female_heights = np.random.normal(158, 5, 5)
 
-male_weights = np.random.normal(70, 10, 500)
-female_weights = np.random.normal(57, 8, 500)
+male_weights = np.random.normal(70, 10, 5)
+female_weights = np.random.normal(57, 8, 5)
 
-male_bfrs = np.random.normal(16, 2, 500)
-female_bfrs = np.random.normal(22, 2, 500)
+male_bfrs = np.random.normal(16, 2, 5)
+female_bfrs = np.random.normal(22, 2, 5)
 
-male_labels = [1] * 500
-female_labels = [0] * 500
+male_labels = [1] * 5
+female_labels = [0] * 5
 
 train_set = np.array([np.concatenate((male_heights, female_heights)),
                       np.concatenate((male_weights, female_weights)),
@@ -52,7 +52,7 @@ for i in range(5):
     # print('activation:', predict.value.T)
     w.backward(loss)
     b.backward(loss)
-    default_graph.draw()
+    # default_graph.draw()
     w_temp_value=w.value.copy()
     b_temp_value=b.value.copy()
     w.clear_value()

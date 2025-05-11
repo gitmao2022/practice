@@ -64,8 +64,8 @@ class Graph:
                     if value_arr.size == 1:
                         value_str = "v={:.3f}".format(float(value_arr))
                     else:
-                        # 判断是否为二维及以上，且行数大于5
-                        if value_arr.ndim >= 2 and value_arr.shape[0] > 5:
+                        # 判断是否为二维及以上，且行数大于8
+                        if value_arr.ndim >= 2 and value_arr.shape[0] > 8:
                             shown = value_arr[:5]
                             value_str = "v=" + np.array2string(shown, precision=3, separator=',', suppress_small=True)
                             value_str += "\n..."
