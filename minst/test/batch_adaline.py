@@ -1,21 +1,24 @@
 import sys
+
+from matplotlib import pyplot as plt
 sys.path.append('../..')
 import os
 sys.path.append(os.getcwd())
 import numpy as np
 from minst.core import *
 
-male_heights = np.random.normal(171, 6, 5)
-female_heights = np.random.normal(158, 5, 5)
+sample_size = 50
+male_heights = np.random.normal(171, 6, sample_size)
+female_heights = np.random.normal(158, 50, sample_size)
 
-male_weights = np.random.normal(70, 10, 5)
-female_weights = np.random.normal(57, 8, 5)
+male_weights = np.random.normal(70, 10, sample_size)
+female_weights = np.random.normal(57, 8, sample_size)
 
-male_bfrs = np.random.normal(16, 2, 5)
-female_bfrs = np.random.normal(22, 2, 5)
+male_bfrs = np.random.normal(16, 2, sample_size)
+female_bfrs = np.random.normal(22, 2, sample_size)
 
-male_labels = [1] * 5
-female_labels = [0] * 5
+male_labels = [1] * sample_size
+female_labels = [0] * sample_size
 
 train_set = np.array([np.concatenate((male_heights, female_heights)),
                       np.concatenate((male_weights, female_weights)),
@@ -40,15 +43,20 @@ w =variable_node.Variable(dim=(3, 1), init=True, trainable=True)
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
 b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 
-learning_rate = 0.1
+learning_rate = 0.0002
 xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
 predict=activity_node.Logistic(output)
 loss=loss_node.Sigmoid_Loss(predict,label)
-# print('label shape:',label.value.shape,'predict shape:',predict.value.shape)
-for i in range(5):
+print('label:', label.value)
+accuracy=[]
+for i in range(300):
+    # print('w:', w.value)
+    # print('b:', b.value)
     loss.forward()
-    print('epoch:', i, 'loss:', np.sum(loss.value))
+    # print('output:', output.value)
+    # print('predict:', predict.value)
+    # print('epoch:', i, 'loss:', np.sum(loss.value))
     # print('activation:', predict.value.T)
     w.backward(loss)
     b.backward(loss)
@@ -59,17 +67,20 @@ for i in range(5):
     b.clear_value()
     w_jacobi_mean=np.mean(w.jacobi,axis=0).reshape(w_temp_value.shape)
     b_jacobi_mean=np.mean(b.jacobi,axis=0).reshape(b_temp_value.shape)
-    print("w_jacobi_mean",w_jacobi_mean)
-    print("b_jacobi_mean",b_jacobi_mean)
+    # print("w_jacobi_mean",w_jacobi_mean)
+    # print("b_jacobi_mean",b_jacobi_mean)
     w.set_value(w_temp_value - learning_rate * w_jacobi_mean)
     b.set_value(b_temp_value - learning_rate * b_jacobi_mean)
-    print('new w:', w.value)
-    print('new b:', b.value)
-    predict.forward()
-    # print('predict:', predict.value)
-    # binary_predictions = (predict.value > 0.5).astype(np.int32)
-    # print('binary_predictions:', binary_predictions)
-    # print('train_set[-1]=binary_predictions', train_set[-1] == binary_predictions)
-    # accuracy = (train_set[-1] == binary_predictions).astype(np.int32).sum() / len(train_set)
+    predict.forward() 
+    binary_predictions = (predict.value > 0.5).astype(np.int32).reshape(-1)    
+    accuracy.append((train_set[:,-1] == binary_predictions).astype(np.int32).sum() / len(train_set))
     # print('accuracy=',accuracy)
-    # default_graph.clear_jacobi()
+    default_graph.clear_jacobi()
+# 用折线图显示训练过程中的准确率
+plt.plot(range(len(accuracy)), accuracy, label='accuracy')
+plt.xlabel('epoch')
+plt.ylabel('accuracy')
+plt.title('Batch Adaline')
+plt.legend()
+plt.show()
+
