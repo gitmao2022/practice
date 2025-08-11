@@ -7,7 +7,7 @@ sys.path.append(os.getcwd())
 import numpy as np
 from minst.core import *
 
-sample_size = 50
+sample_size = 100
 male_heights = np.random.normal(171, 6, sample_size)
 female_heights = np.random.normal(158, 50, sample_size)
 
@@ -27,22 +27,19 @@ train_set = np.array([np.concatenate((male_heights, female_heights)),
 np.random.shuffle(train_set)
 
 default_graph = graph.default_graph
-batch_length = len(train_set)
+# batch_length = len(train_set)
+batch_length=100
 # 构造计算图：输入向量，是一个100x1矩阵，不需要初始化，不参与训练
 x =variable_node.Variable(dim=(batch_length, 3), init=False, trainable=False)
-x.set_value (train_set[:, 0:3])
+
 # 类别标签，1男，-1女
 label =variable_node.Variable(dim=(batch_length, 1), init=False, trainable=False)
-label.set_value(train_set[:, -1])
-# print(label.value)
-# print(x.value)
 
 # 权重向量，是一个1x3矩阵，需要初始化，参与训练
 w =variable_node.Variable(dim=(3, 1), init=True, trainable=True)
-
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
 b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
-
+epoch = 1000
 learning_rate = 0.0002
 xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
@@ -50,7 +47,12 @@ predict=activity_node.Logistic(output)
 loss=loss_node.Sigmoid_Loss(predict,label)
 print('label:', label.value)
 accuracy=[]
-for i in range(500):
+for i in range(epoch):
+    batch_train_set = train_set[np.random.choice(train_set.shape[0], batch_length, replace=False), :]
+    x.change_dim((batch_length, 3))
+    label.change_dim((batch_length, 1))
+    x.set_value (batch_train_set[:, 0:3])
+    label.set_value(batch_train_set[:, -1])
     loss.forward()
     w.backward(loss)
     b.backward(loss)
@@ -61,15 +63,10 @@ for i in range(500):
     w.clear_value(clear_self=False)
     b.clear_value(clear_self=False)
 
-
-    # w_temp_value=w.value.copy()
-    # b_temp_value=b.value.copy()
-    # w.clear_value()
-    # b.clear_value()
-    # w_jacobi_mean=np.mean(w.jacobi,axis=0).reshape(w_temp_value.shape)
-    # b_jacobi_mean=np.mean(b.jacobi,axis=0).reshape(b_temp_value.shape)
-    # w.set_value(w_temp_value - learning_rate * w_jacobi_mean)
-    # b.set_value(b_temp_value - learning_rate * b_jacobi_mean)
+    x.change_dim((len(train_set), 3))
+    label.change_dim((len(train_set), 1))
+    x.set_value(train_set[:, 0:3])
+    label.set_value(train_set[:, -1])
     predict.forward() 
     binary_predictions = (predict.value > 0.5).astype(np.int32).reshape(-1)    
     accuracy.append((train_set[:,-1] == binary_predictions).astype(np.int32).sum() / len(train_set))
@@ -81,5 +78,4 @@ plt.ylabel('accuracy')
 plt.title('Batch Adaline')
 plt.legend()
 plt.show()
-
 

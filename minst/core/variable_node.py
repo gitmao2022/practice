@@ -25,3 +25,11 @@ class Variable(Node):
         """
         self.clear_value()        
         self.value = value.reshape(self.dim)
+
+    def change_dim(self, dim):
+        """
+        改变变量的形状
+        """
+        self.dim = dim
+    
+            
