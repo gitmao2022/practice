@@ -15,7 +15,7 @@ class Variable(Node):
 
         # 如果需要初始化，则以正态分布随机初始化变量的值
         if init:
-            self.value = np.random.normal(0, 0.001, self.dim)
+            self.value = np.random.normal(0, 0.01, self.dim)
         # 变量节点是否参与训练
         self.trainable = trainable
 
@@ -25,3 +25,11 @@ class Variable(Node):
         """
         self.clear_value()        
         self.value = value.reshape(self.dim)
+
+    def change_dim(self, dim):
+        """
+        改变变量的形状
+        """
+        self.dim = dim
+    
+            

@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-05-05 21:58:23
+@LastEditTime : 2025-05-13 22:36:10
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -73,13 +73,17 @@ class Sigmoid_Loss(Node):
         label=self.parents[1].value
         result=self.parents[0].value
         #if any number in result is 0 or 1,the set the threshold to avoid log(0)
-        result = np.clip(result, 1e-2, 1 - 1e-2) 
+        result = np.clip(result, 1e-4, 1 - 1e-4) 
         return -label*np.log(result)-(1-label)*np.log(1-result)
     def get_jacobi(self,parent):
         label=self.parents[1].value
         result=self.parents[0].value
+        result= np.clip(result, 1e-4, 1 - 1e-4)
         if parent is self.parents[0]:
             return np.diag((-label/result+(1-label)/(1-result)).flatten())
         elif parent is self.parents[1]:
             return np.diag((-np.log(result)+np.log(1-result)).flatten())
+        
+
+
     
