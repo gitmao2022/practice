@@ -35,6 +35,7 @@ x =variable_node.Variable(dim=(batch_length, 3), init=False, trainable=False)
 # 类别标签，1男，-1女
 label =variable_node.Variable(dim=(batch_length, 1), init=False, trainable=False)
 
+
 # 权重向量，是一个1x3矩阵，需要初始化，参与训练
 w =variable_node.Variable(dim=(3, 1), init=True, trainable=True)
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
@@ -67,8 +68,9 @@ for i in range(epoch):
     label.change_dim((len(train_set), 1))
     x.set_value(train_set[:, 0:3])
     label.set_value(train_set[:, -1])
-    predict.forward() 
-    binary_predictions = (predict.value > 0.5).astype(np.int32).reshape(-1)    
+    predict.forward()
+    # flatten before thresholding to handle (N,1) shaped outputs
+    binary_predictions = (predict.value.reshape(-1) > 0.5)
     accuracy.append((train_set[:,-1] == binary_predictions).astype(np.int32).sum() / len(train_set))
     default_graph.clear_jacobi()
 # 用折线图显示训练过程中的准确率

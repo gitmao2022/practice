@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-06-17 22:54:37
+@LastEditTime : 2025-12-07 21:01:02
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -47,6 +47,7 @@ class Node(object):
         """
         return self.value
     
+    @abstractmethod
     def get_jacobi(self, parent):
         """
         抽象方法，计算本节点对某个父节点的雅可比矩阵
@@ -59,9 +60,6 @@ class Node(object):
         self.jacobi = None
 
     def forward(self):
-        """
-        前向传播，计算节点的值
-        """
         for node in self.parents:
             if node.value is None:
                 node.forward()
@@ -82,12 +80,9 @@ class Node(object):
             for child in self.children:
                 child.clear_value()
 
-    @abstractmethod
     def compute_value(self):
-        """
-        计算节点的值
-        """
-        pass
+        return self.value
+        
 
     def dimension(self):
         """
@@ -95,7 +90,6 @@ class Node(object):
         """
         return self.shape[0] * self.shape[1]
     
-    @abstractmethod
     def backward(self, result):
         """
         反向传播，计算结果节点对本节点的雅可比矩阵
@@ -107,7 +101,6 @@ class Node(object):
                 self.jacobi = np.zeros((result.dimension(), self.dimension()))
                 for child in self.children:
                     if child.value is not None:
-                        # print(child.node_name,self.node_name,'child.jacobi.shape:', child.get_jacobi(self).shape)
                         self.jacobi +=np.dot(child.backward(result), child.get_jacobi(self))
         return self.jacobi
     

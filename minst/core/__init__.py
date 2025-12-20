@@ -1,1 +1,1 @@
-__all__=['node','graph','loss_node','variable_node','operate_node','activity_node']
+__all__=['node','graph','loss_node','variable_node','operate_node','activity_node','optimizer']
