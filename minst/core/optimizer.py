@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-12-18 21:35:06
+@LastEditTime : 2025-12-21 17:15:28
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -51,14 +51,15 @@ class Optimizer:
         """
         for _ in range(epoch):
             default_graph.clear_jacobi()
+            self.jacobi_cache={}
             self.forward()
             # default_graph.draw()
             for node in default_graph.nodes:
-                if isinstance(node, Variable) and node.trainable and node.jacobi is None:
+                if isinstance(node, Variable) and node.trainable and self.jacobi_cache.get(node.node_name) is None:
                     node.backward(self.loss_node)
                     jacobi_mean=np.mean(node.jacobi,axis=0).reshape(node.shape)        
                     self.jacobi_cache[node.node_name]=jacobi_mean
-            print(self.jacobi_cache)        
+            # print(self.jacobi_cache)        
             for node in default_graph.nodes:
                 if isinstance(node, Variable) and node.trainable:
                     jacobi_mean=self.jacobi_cache[node.node_name]

@@ -31,7 +31,7 @@ train_set = train_set[:,:-1]
 
 default_graph = graph.default_graph
 opt=optimizer.Optimizer(epoch=2000,batch_size=len(train_set),train_set=train_set,target_set=target_set,
-                        learning_rate=0.0001,optimizer_type='sgd')
+                        learning_rate=0.001,optimizer_type='sgd')
 affine=opt.add_fc_layer(opt.input_var, back_layer_size=1, activation='Logistic')
 opt.loss_node=loss_node.Sigmoid_Loss(affine, opt.target_var)
 # 记录训练过程中 weights、bias 以及 accuracy
@@ -43,7 +43,7 @@ for i in range(opt.epoch):
     opt.forward_backward()
     # default_graph.draw()
     opt.forward()
-
+    # print(f'Epoch {i+1}/{opt.epoch}, Loss: {affine.value}')
     # 从计算图中取得权重和偏置变量：affine = Add(MatMul(previous, weights), bias)
     matmul_node = affine.parents[0].parents[0]
     weight_var = matmul_node.parents[1]
@@ -58,13 +58,10 @@ for i in range(opt.epoch):
     # 计算当前准确率并记录
     binary_predictions = (affine.value.reshape(-1) > 0.5)
     accuracy.append((target_set== binary_predictions).astype(np.int32).sum() / len(target_set))
-    default_graph.clear_jacobi()
-
 # 把记录转为 numpy 数组，方便绘图
 weights_history = np.array(weights_history)
 bias_history = np.array(bias_history)
 accuracy = np.array(accuracy)
-
 # 绘制：权重的每个分量和 bias 在左 y 轴，accuracy 在右 y 轴
 epochs = np.arange(len(accuracy))
 fig, ax1 = plt.subplots(figsize=(10, 6))

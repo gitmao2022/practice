@@ -24,7 +24,7 @@ class Variable(Node):
         为变量赋值
         """
         if clear:
-            self.clear_value()        
+            self.clear_value(clear_self=False)        
         self.value = value.reshape(self.dim)
     
     def change_dim(self, dim):
