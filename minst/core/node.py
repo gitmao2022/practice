@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-12-07 21:01:02
+@LastEditTime : 2025-12-28 20:06:12
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -73,12 +73,10 @@ class Node(object):
         return self.value.shape
     
     
-    def clear_value(self,clear_self=True,recursive=True):
-        if clear_self:
-            self.value = None
-        if recursive:
-            for child in self.children:
-                child.clear_value()
+    def clear_value(self):
+        for child in self.children:
+            child.clear_value()
+        self.value = None
 
     def compute_value(self):
         return self.value

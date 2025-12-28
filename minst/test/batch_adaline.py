@@ -9,7 +9,7 @@ from minst.core import *
 
 sample_size = 100
 male_heights = np.random.normal(171, 6, sample_size)
-female_heights = np.random.normal(158, 50, sample_size)
+female_heights = np.random.normal(158, 5, sample_size)
 
 male_weights = np.random.normal(70, 10, sample_size)
 female_weights = np.random.normal(57, 8, sample_size)
@@ -28,7 +28,7 @@ np.random.shuffle(train_set)
 
 default_graph = graph.default_graph
 # batch_length = len(train_set)
-batch_length=100
+batch_length=200
 # 构造计算图：输入向量，是一个100x1矩阵，不需要初始化，不参与训练
 x =variable_node.Variable(dim=(batch_length, 3), init=False, trainable=False)
 
@@ -41,6 +41,7 @@ w =variable_node.Variable(dim=(3, 1), init=True, trainable=True)
 # 阈值，是一个1x1矩阵，需要初始化，参与训练
 b =variable_node.Variable(dim=(1, 1), init=True, trainable=True)
 epoch = 1000
+# 学习率调小一些，配合特征标准化一般更稳定
 learning_rate = 0.0002
 xw=operate_node.MatMul(x, w)
 output = operate_node.Add(xw, b)
@@ -58,12 +59,9 @@ for i in range(epoch):
     w.backward(loss)
     b.backward(loss)
     w_jacobi_mean=np.mean(w.jacobi,axis=0).reshape(w.value.shape)
-    b_jacobi_mean=np.mean(b.jacobi,axis=0).reshape(b.value.shape)
+    b_jacobi_mean=np.mean(b.jacobi,axis=0).reshape(b.value.shape) 
     w.set_value(w.value - learning_rate * w_jacobi_mean)
     b.set_value(b.value - learning_rate * b_jacobi_mean)
-    w.clear_value(clear_self=False)
-    b.clear_value(clear_self=False)
-
     x.change_dim((len(train_set), 3))
     label.change_dim((len(train_set), 1))
     x.set_value(train_set[:, 0:3])
@@ -71,8 +69,9 @@ for i in range(epoch):
     predict.forward()
     # flatten before thresholding to handle (N,1) shaped outputs
     binary_predictions = (predict.value.reshape(-1) > 0.5)
-    accuracy.append((train_set[:,-1] == binary_predictions).astype(np.int32).sum() / len(train_set))
+    accuracy.append((label.value.reshape(-1) == binary_predictions).astype(np.int32).sum() / len(train_set))
     default_graph.clear_jacobi()
+    # default_graph.draw()
 # 用折线图显示训练过程中的准确率
 plt.plot(range(len(accuracy)), accuracy, label='accuracy')
 plt.xlabel('epoch')

@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-05-05 21:56:14
+@LastEditTime : 2025-12-23 20:53:25
 @FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -23,6 +23,7 @@ class Logistic(Node):
         x = self.parents[0].value
         # 对父节点的每个分量施加Logistic
         return 1.0 / (1.0 + np.power(np.e, np.where(-x > 1e2, 1e2, -x)))
+    
     def get_jacobi(self, parent):
         return np.diag(np.multiply(self.value, 1 - self.value).flatten())
 

@@ -31,7 +31,7 @@ train_set = train_set[:,:-1]
 
 default_graph = graph.default_graph
 opt=optimizer.Optimizer(epoch=2000,batch_size=len(train_set),train_set=train_set,target_set=target_set,
-                        learning_rate=0.001,optimizer_type='sgd')
+                        learning_rate=0.0002,optimizer_type='sgd')
 affine=opt.add_fc_layer(opt.input_var, back_layer_size=1, activation='Logistic')
 opt.loss_node=loss_node.Sigmoid_Loss(affine, opt.target_var)
 # 记录训练过程中 weights、bias 以及 accuracy
@@ -41,8 +41,8 @@ accuracy = []
 # default_graph.draw()
 for i in range(opt.epoch):
     opt.forward_backward()
-    # default_graph.draw()
     opt.forward()
+    default_graph.draw()
     # print(f'Epoch {i+1}/{opt.epoch}, Loss: {affine.value}')
     # 从计算图中取得权重和偏置变量：affine = Add(MatMul(previous, weights), bias)
     matmul_node = affine.parents[0].parents[0]
