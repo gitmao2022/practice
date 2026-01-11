@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-01-01 14:08:36
+@LastEditTime : 2026-01-11 22:31:02
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -91,6 +91,8 @@ class Optimizer:
             return ReLU(affine)
         elif activation == "Logistic":
             return Logistic(affine)
+        elif activation == "Softmax":
+            return Softmax(affine)
         else:
             return affine
 
