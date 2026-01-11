@@ -35,10 +35,12 @@ class Node(object):
         # 将本节点添加到计算图中
         self.graph.add_node(self)
 
-    def set_value(self, value):
+    def set_value(self, value, clear=True):
         """
         设置节点的值
         """
+        if clear:
+            self.clear_value()
         self.value = value
 
     def get_value(self):

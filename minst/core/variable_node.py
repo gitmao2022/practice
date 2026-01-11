@@ -19,14 +19,6 @@ class Variable(Node):
         # 变量节点是否参与训练
         self.trainable = trainable
 
-    def set_value(self, value,clear=True):
-        """
-        为变量赋值
-        """
-        
-        if clear:
-            self.clear_value()        
-        self.value = value.reshape(self.dim)
     
     def change_dim(self, dim):
         """

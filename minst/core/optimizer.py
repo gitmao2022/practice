@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-12-21 17:15:28
+@LastEditTime : 2026-01-01 14:08:36
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -52,6 +52,8 @@ class Optimizer:
         for _ in range(epoch):
             default_graph.clear_jacobi()
             self.jacobi_cache={}
+            #重新生成batch数据
+            self.gnr_batch_var()
             self.forward()
             # default_graph.draw()
             for node in default_graph.nodes:
