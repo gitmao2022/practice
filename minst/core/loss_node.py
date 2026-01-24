@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-05-13 22:36:10
+@LastEditTime : 2026-01-24 21:25:55
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -39,8 +39,7 @@ class CrossEntropyWithSoftMax(Node):
 
     def compute_value(self):
         prob = SoftMax.softmax(self.parents[0].value)
-        self.value = np.mat(
-            -np.sum(np.multiply(self.parents[1].value, np.log(prob + 1e-10))))
+        return  -np.sum(np.multiply(self.parents[1].value, np.log(prob + 1e-10)))
 
     def get_jacobi(self, parent):
         # 这里存在重复计算，但为了代码清晰简洁，舍弃进一步优化
