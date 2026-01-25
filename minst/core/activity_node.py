@@ -62,11 +62,10 @@ class SoftMax(Node):
 
     def get_jacobi(self, parent):
         """
-        我们不实现SoftMax节点的get_jacobi函数，
-        训练时使用CrossEntropyWithSoftMax节点
+        计算SoftMax函数的雅可比矩阵
         """
-        raise NotImplementedError("Don't use SoftMax's get_jacobi")
-    
+        s = self.value.reshape(-1, 1)
+        return np.diagflat(s) - np.dot(s, s.T)
 
 class Step(Node):
     

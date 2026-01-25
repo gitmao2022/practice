@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-12-28 20:06:12
+@LastEditTime : 2026-01-25 16:48:55
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -86,9 +86,9 @@ class Node(object):
 
     def dimension(self):
         """
-        返回本节点的值展平成向量后的维数
+        返回本节点的值展平成向量后的维数,不限于二维向量
         """
-        return self.shape[0] * self.shape[1]
+        return np.prod(self.shape)
     
     def backward(self, result):
         """

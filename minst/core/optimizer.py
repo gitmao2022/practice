@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-01-24 21:26:39
+@LastEditTime : 2026-01-25 16:23:18
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -58,7 +58,7 @@ class Optimizer:
             # default_graph.draw()
             for node in default_graph.nodes:
                 if isinstance(node, Variable) and node.trainable and self.jacobi_cache.get(node.node_name) is None:
-                    # node.backward(self.loss_node)
+                    node.backward(self.loss_node)
                     jacobi_mean=np.mean(node.jacobi,axis=0).reshape(node.shape)        
                     self.jacobi_cache[node.node_name]=jacobi_mean
             # print(self.jacobi_cache)        
@@ -91,7 +91,7 @@ class Optimizer:
             return ReLU(affine)
         elif activation == "Logistic":
             return Logistic(affine)
-        elif activation == "Softmax":
+        elif activation == "SoftMax":
             return SoftMax(affine)
         else:
             return affine
