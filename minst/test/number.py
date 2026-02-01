@@ -67,11 +67,11 @@ for i in range(opt.epoch):
     opt.forward_backward()
     opt.forward()
     # record accuracy
-    pred = np.argmax(affine.output, axis=1)
-    true = np.argmax(opt.target_var.data, axis=1)
+    pred = np.argmax(affine.value, axis=1)
+    true = np.argmax(opt.target_var.value, axis=1)
     acc = np.sum(pred == true) / batch_size
     accuracy.append(acc)
-    print(f'Epoch {i}, Loss: {opt.loss_node.output}, Accuracy: {acc}')
+    print(f'Epoch {i}, Accuracy: {acc}')
 
 
 

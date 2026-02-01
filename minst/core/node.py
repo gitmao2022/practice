@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-01-25 16:48:55
+@LastEditTime : 2026-01-25 20:41:12
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -101,6 +101,10 @@ class Node(object):
                 self.jacobi = np.zeros((result.dimension(), self.dimension()))
                 for child in self.children:
                     if child.value is not None:
-                        self.jacobi +=np.dot(child.backward(result), child.get_jacobi(self))
+                        #catch ValueError exception when shapes are not aligned
+                        try:
+                            self.jacobi +=np.dot(child.backward(result), child.get_jacobi(self))
+                        except ValueError as e:
+                            print(f"ValueError in backward propagation at node {child.node_name}: {e}")                        
         return self.jacobi
     
