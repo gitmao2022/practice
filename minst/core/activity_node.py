@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-12-23 20:53:25
+@LastEditTime : 2026-02-04 20:49:48
 @FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -51,21 +51,30 @@ class SoftMax(Node):
     SoftMax函数
     """
 
-    @staticmethod
-    def softmax(a):
-        a[a > 1e2] = 1e2  # 防止指数过大
-        ep = np.power(np.e, a)
-        return ep / np.sum(ep)
-
     def compute_value(self):
-        return SoftMax.softmax(self.parents[0].value)
+        #if parents[0].value.ndim ==2 ,则按行计算SoftMax
+        x = self.parents[0].value
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return e_x / np.sum(e_x, axis=1, keepdims=True)
+
 
     def get_jacobi(self, parent):
         """
-        计算SoftMax函数的雅可比矩阵
+        计算SoftMax函数的雅可比矩阵,要考虑parent的维度为2的情况
         """
-        s = self.value.reshape(-1, 1)
-        return np.diagflat(s) - np.dot(s, s.T)
+        s = self.value
+        if s.ndim == 1:
+            s = s.reshape(-1, 1)
+        jacobi = np.zeros((s.shape[0], s.shape[1], s.shape[1]))
+        for i in range(s.shape[0]):
+            for j in range(s.shape[1]):
+                for k in range(s.shape[1]):
+                    if j == k:
+                        jacobi[i, j, k] = s[i, j] * (1 - s[i, k])
+                    else:
+                        jacobi[i, j, k] = -s[i, j] * s[i, k]
+        return jacobi
+        
 
 class Step(Node):
     

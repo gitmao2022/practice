@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-01-25 20:41:12
+@LastEditTime : 2026-02-07 21:10:14
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -105,6 +105,11 @@ class Node(object):
                         try:
                             self.jacobi +=np.dot(child.backward(result), child.get_jacobi(self))
                         except ValueError as e:
-                            print(f"ValueError in backward propagation at node {child.node_name}: {e}")                        
+                            print(f"ValueError in backward propagation at node {child.node_name}:{e}")  
+                            print('self.node_name', self.node_name,'self.shape', self.shape)
+                            print('child.node_name', child.node_name,'child.shape', child.shape)
+                            print("child.get_jacobi(self).shape",child.get_jacobi(self).shape)
+                            print("child.backward(result).shape",child.backward(result).shape)
+                            exit(1)                      
         return self.jacobi
     

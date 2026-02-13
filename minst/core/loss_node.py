@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-01-25 16:50:10
+@LastEditTime : 2026-02-13 22:02:08
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -33,9 +33,6 @@ class LogLoss(Node):
 
 
 class CrossEntropyWithSoftMax(Node):
-    """
-    对第一个父节点施加SoftMax之后，再以第二个父节点为标签One-Hot向量计算交叉熵
-    """
 
     def compute_value(self):
         # prob = SoftMax.softmax(self.parents[0].value)
@@ -44,16 +41,26 @@ class CrossEntropyWithSoftMax(Node):
         return v
 
     def get_jacobi(self, parent):
-        # 这里存在重复计算，但为了代码清晰简洁，舍弃进一步优化
-        # prob = SoftMax.softmax(self.parents[0].value)
-        # if parent is self.parents[0]:
-        #     return (prob - self.parents[1].value).T
-        # else:
-        #     return (-np.log(prob)).T
+        #CrossEntropyWithSoftMax的父节点通常为softmax节点，其形状可能为二维。
+        #因此，雅可比矩阵的计算需要考虑到这一点。
+        prob = self.parents[0].value
+        label = self.parents[1].value
+        
+        N = prob.shape[0]
+        C = prob.shape[1]
+        
+        jacobi = np.zeros((N, N * C))
+        rows = np.arange(N).repeat(C)
+        cols = np.arange(N * C)
+        
         if parent is self.parents[0]:
-            return (self.parents[0].value - self.parents[1].value).T
-        else:
-            return (-np.log(self.parents[0].value + 1e-10)).T   
+            grad = -label / (prob + 1e-10)
+            jacobi[rows, cols] = grad.ravel()
+        elif parent is self.parents[1]:
+            grad = -np.log(prob + 1e-10)
+            jacobi[rows, cols] = grad.ravel()
+            
+        return jacobi
         
 
 

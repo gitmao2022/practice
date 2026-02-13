@@ -113,7 +113,7 @@ class Graph:
                     if vtmp is None:
                         size_str = 'N'
                     else:
-                        size_str = str(_np.array(vtmp).size)
+                        size_str = str(_np.array(vtmp).shape)
             except Exception:
                 size_str = 'N'
             labels_short[node] = node.__class__.__name__ + ("(" + size_str + ")")
@@ -277,7 +277,7 @@ class Graph:
                             if vtmp is None:
                                 size_str = 'N'
                             else:
-                                size_str = str(np.array(vtmp).size)
+                                size_str = str(np.array(vtmp).shape)
                     except Exception:
                         size_str = 'N'
                     labels_short[n] = n.__class__.__name__ + ("(" + size_str + ")")
