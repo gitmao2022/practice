@@ -31,8 +31,7 @@ train_set = train_set[:,:-1]
 
 default_graph = graph.default_graph
 batch_size=30
-opt=optimizer.Optimizer(epoch=2000,batch_size=batch_size,train_set=train_set,target_set=target_set,
-                        learning_rate=0.0002,optimizer_type='sgd')
+opt=optimizer.Optimizer(epoch=2000,batch_size=batch_size,train_set=train_set,target_set=target_set, learning_rate=0.0002,optimizer_type='sgd')
 affine=opt.add_fc_layer(opt.input_var, back_layer_size=1, activation='Logistic')
 opt.loss_node=loss_node.Sigmoid_Loss(affine, opt.target_var)
 # 记录训练过程中 weights、bias 以及 accuracy

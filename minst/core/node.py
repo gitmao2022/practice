@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-07 21:10:14
+@LastEditTime : 2026-02-21 22:10:57
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -53,6 +53,7 @@ class Node(object):
     def get_jacobi(self, parent):
         """
         抽象方法，计算本节点对某个父节点的雅可比矩阵
+        如果parent的维度大于1，则无法计算jacobi矩阵，所以要将parent维度延展至1维
         """
 
     def clear_jacobi(self):

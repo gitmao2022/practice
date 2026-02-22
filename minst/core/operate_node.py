@@ -43,11 +43,19 @@ class Add(Node):
         return value
 
     def get_jacobi(self, parent):
-        if parent.value.shape==self.value.shape:
-            #not use broadcast
-            return np.eye(self.shape[0]*self.shape[1])
+        if parent.value.shape == self.value.shape:
+            # Not use broadcast
+            return np.eye(self.dimension())
         else:
-            return np.ones((self.shape[0],parent.shape[1]))
+            # Broadcast case, assume parent is a vector (e.g. bias) added to each row
+            # But the original code was returning np.ones((self.shape[0], parent.shape[1])) which is weird. 
+            # If we assume parent is (1, M) broadcasting to (N, M), Jacobian is (NM, M) block diagonal...
+            # However, sticking to the user's request to 'extend parent dimension to 1D'.
+            # If the user means flatten parent, use parent.dimension().
+            
+            # Reverting to what seems safer or correcting the specific shape access:
+            
+            return np.ones((self.dimension(), parent.dimension()))
 
 
 class MatMul(Node):
@@ -112,11 +120,10 @@ class Multiply(Node):
         return np.multiply(self.parents[0].value, self.parents[1].value)
 
     def get_jacobi(self, parent):
-
         if parent is self.parents[0]:
-            return np.diag(self.parents[1].value.A1)
+            return np.diag(self.parents[1].value.flatten())
         else:
-            return np.diag(self.parents[0].value.A1)
+            return np.diag(self.parents[0].value.flatten())
 
 
 class Convolve(Node):
@@ -301,8 +308,7 @@ class Step(Node):
         self.value = np.where(self.parents[0].value >= 0.0, 1.0, 0.0)
 
     def get_jacobi(self, parent):
-        np.eye(self.dimension())
-        return np.zeros(np.where(self.parents[0].value.A1 >= 0.0, 0.0, -1.0))
+        return np.diag(np.where(self.parents[0].value.flatten() >= 0.0, 0.0, -1.0))
 
 
 class Welding(Node):

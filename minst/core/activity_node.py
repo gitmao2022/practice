@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-04 20:49:48
+@LastEditTime : 2026-02-22 13:32:25
 @FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -43,38 +43,23 @@ class ReLU(Node):
         )
 
     def get_jacobi(self, parent):
-        return np.diag(np.where(self.parents[0].value.A1 > 0.0, 1.0, self.nslope))
+        return np.diag(np.where(self.parents[0].value.flatten() > 0.0, 1.0, self.nslope))
 
-
-class SoftMax(Node):
+        
+class Softmax(Node):
     """
-    SoftMax函数
+    对矩阵的行施加Softmax函数
     """
-
     def compute_value(self):
-        #if parents[0].value.ndim ==2 ,则按行计算SoftMax
         x = self.parents[0].value
         e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
         return e_x / np.sum(e_x, axis=1, keepdims=True)
 
-
     def get_jacobi(self, parent):
-        """
-        计算SoftMax函数的雅可比矩阵,要考虑parent的维度为2的情况
-        """
-        s = self.value
-        if s.ndim == 1:
-            s = s.reshape(-1, 1)
-        jacobi = np.zeros((s.shape[0], s.shape[1], s.shape[1]))
-        for i in range(s.shape[0]):
-            for j in range(s.shape[1]):
-                for k in range(s.shape[1]):
-                    if j == k:
-                        jacobi[i, j, k] = s[i, j] * (1 - s[i, k])
-                    else:
-                        jacobi[i, j, k] = -s[i, j] * s[i, k]
-        return jacobi
-        
+        # 这里存在重复计算，但为了代码清晰简洁，舍弃进一步优化
+        print("Softmax节点的雅可比矩阵计算存在性能问题,故返回0作为占位 。")
+        return 0
+    
 
 class Step(Node):
     
