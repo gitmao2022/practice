@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-13 22:02:08
+@LastEditTime : 2026-02-22 22:54:16
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -12,7 +12,6 @@
 
 import numpy as np
 from .node import Node
-from .activity_node import SoftMax
 
 
 class LogLoss(Node):
@@ -35,30 +34,35 @@ class LogLoss(Node):
 class CrossEntropyWithSoftMax(Node):
 
     def compute_value(self):
-        # prob = SoftMax.softmax(self.parents[0].value)
-        # return  -np.sum(np.multiply(self.parents[1].value, np.log(prob + 1e-10)))
+        # 首先对parent[0]计算softmax值
+        x = self.parents[0].value
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        self.parents[0].value = e_x / np.sum(e_x, axis=1, keepdims=True)
         v= -np.sum(np.multiply(self.parents[1].value, np.log(self.parents[0].value + 1e-10)),axis=1,keepdims=True)
         return v
 
     def get_jacobi(self, parent):
         #CrossEntropyWithSoftMax的父节点通常为softmax节点，其形状可能为二维。
         #因此，雅可比矩阵的计算需要考虑到这一点。
-        prob = self.parents[0].value
-        label = self.parents[1].value
-        
-        N = prob.shape[0]
-        C = prob.shape[1]
-        
-        jacobi = np.zeros((N, N * C))
-        rows = np.arange(N).repeat(C)
-        cols = np.arange(N * C)
-        
         if parent is self.parents[0]:
-            grad = -label / (prob + 1e-10)
-            jacobi[rows, cols] = grad.ravel()
+            #首先再次计算softmax值
+            x = self.parents[0].value
+            e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+            prob = e_x / np.sum(e_x, axis=1, keepdims=True)
+            jacobi=[]
+            for row in range(parent.shape[0]):
+                jacobi_row=np.zeros((self.shape[0],parent.shape[1]))
+                jacobi_row[row,:]= prob[row,:] - self.parents[1].value[row,:]
+                jacobi=np.concatenate((jacobi,jacobi_row),axis=1)
+                
+            
         elif parent is self.parents[1]:
-            grad = -np.log(prob + 1e-10)
-            jacobi[rows, cols] = grad.ravel()
+            # 对于标签节点，雅可比矩阵相对简单，是一个对角矩阵。
+            prob = self.parents[0].value
+            jacobi = np.zeros((prob.shape[0], prob.shape[1], prob.shape[1]))
+            for i in range(prob.shape[0]):
+                p = prob[i].reshape(-1, 1)
+                jacobi[i] = -np.diagflat(np.log(p + 1e-10))
             
         return jacobi
         

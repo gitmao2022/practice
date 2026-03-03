@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-22 13:31:12
+@LastEditTime : 2026-02-22 14:01:43
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -91,8 +91,11 @@ class Optimizer:
             return ReLU(affine)
         elif activation == "Logistic":
             return Logistic(affine)
-        elif activation == "SoftMax":
-            return Softmax(affine, self.target_var)
+        elif activation == "Softmax":
+            # 由于SoftMax节点的雅可比矩阵计算存在性能问题,故在损失节点中直接计算SoftMax值并返回交叉熵损失,此处SoftMax函数仅用于计算预测值。
+            p=Softmax(affine)
+            return affine
+            
         else:
             return affine
 

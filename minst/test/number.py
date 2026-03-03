@@ -59,10 +59,10 @@ default_graph = graph.default_graph
 batch_size=30
 opt=optimizer.Optimizer(epoch=1000,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,
                         learning_rate=0.0002,optimizer_type='sgd')
-affine=opt.add_fc_layer(opt.input_var, back_layer_size=10, activation='SoftMax')
+affine=opt.add_fc_layer(opt.input_var, back_layer_size=10, activation='Softmax')
 opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine, opt.target_var)
 accuracy = []
-# default_graph.draw()
+default_graph.draw()
 for i in range(opt.epoch):
     opt.forward_backward()
     opt.forward()
