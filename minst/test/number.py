@@ -62,7 +62,7 @@ opt=optimizer.Optimizer(epoch=1000,batch_size=batch_size,train_set=train_data_li
 affine=opt.add_fc_layer(opt.input_var, back_layer_size=10, activation='Softmax')
 opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine, opt.target_var)
 accuracy = []
-default_graph.draw()
+# default_graph.draw()
 for i in range(opt.epoch):
     opt.forward_backward()
     opt.forward()

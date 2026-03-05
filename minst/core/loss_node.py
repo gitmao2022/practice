@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 16:36:36
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-22 22:54:16
+@LastEditTime : 2026-03-05 21:47:23
 @FilePath     : loss_node.py
 @Copyright (C) 2025  by ${git_name}. All rights reserved.
 '''
@@ -49,20 +49,20 @@ class CrossEntropyWithSoftMax(Node):
             x = self.parents[0].value
             e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
             prob = e_x / np.sum(e_x, axis=1, keepdims=True)
-            jacobi=[]
-            for row in range(parent.shape[0]):
-                jacobi_row=np.zeros((self.shape[0],parent.shape[1]))
-                jacobi_row[row,:]= prob[row,:] - self.parents[1].value[row,:]
-                jacobi=np.concatenate((jacobi,jacobi_row),axis=1)
-                
+            #对于parent中每个元素，假设其坐标为(i,j),则其对应一个长度为parent[0]的列向量，
+            #且该向量的第i个元素的值为parent[1][i,j]-parent[0][i,j],其他元素的值为0,
+            #最终雅克比矩阵的形状为（parent[0],parent[0]*parent[1]),其每一列为parent中每个
+            #元素对应的列向量。
+            jacobi = np.zeros((parent.value.shape[0], parent.dimension()))
+            for i in range(parent.value.shape[0]):
+                for j in range(parent.value.shape[1]):
+                    col_vector = np.zeros(parent.value.shape[0])
+                    col_vector[i] = self.parents[1].value[i, j] - self.parents[0].value[i, j]
+                    jacobi[:, i * parent.value.shape[1] + j] = col_vector
             
         elif parent is self.parents[1]:
-            # 对于标签节点，雅可比矩阵相对简单，是一个对角矩阵。
-            prob = self.parents[0].value
-            jacobi = np.zeros((prob.shape[0], prob.shape[1], prob.shape[1]))
-            for i in range(prob.shape[0]):
-                p = prob[i].reshape(-1, 1)
-                jacobi[i] = -np.diagflat(np.log(p + 1e-10))
+            print("CrossEntropyWithSoftMax的第二个父节点通常是标签节点，其雅可比矩阵为负的softmax概率矩阵。")
+            return None
             
         return jacobi
         
