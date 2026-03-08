@@ -37,8 +37,9 @@ class CrossEntropyWithSoftMax(Node):
         # 首先对parent[0]计算softmax值
         x = self.parents[0].value
         e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-        self.parents[0].value = e_x / np.sum(e_x, axis=1, keepdims=True)
-        v= -np.sum(np.multiply(self.parents[1].value, np.log(self.parents[0].value + 1e-10)),axis=1,keepdims=True)
+        # 不要修改父节点的值，而是使用局部变量
+        prob = e_x / np.sum(e_x, axis=1, keepdims=True)
+        v= -np.sum(np.multiply(self.parents[1].value, np.log(prob + 1e-10)),axis=1,keepdims=True)
         return v
 
     def get_jacobi(self, parent):
@@ -57,7 +58,8 @@ class CrossEntropyWithSoftMax(Node):
             for i in range(parent.value.shape[0]):
                 for j in range(parent.value.shape[1]):
                     col_vector = np.zeros(parent.value.shape[0])
-                    col_vector[i] = self.parents[1].value[i, j] - self.parents[0].value[i, j]
+                    # 正确的梯度方向应该是 prob - target
+                    col_vector[i] = prob[i, j] - self.parents[1].value[i, j]
                     jacobi[:, i * parent.value.shape[1] + j] = col_vector
             
         elif parent is self.parents[1]:
