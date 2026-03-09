@@ -1,4 +1,6 @@
 import sys
+import matplotlib
+matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 # add project root (parent of `nemat`) so `import nemat` works
 sys.path.append('../..')
@@ -54,7 +56,7 @@ for i in range(test_label_list.shape[0]):
 
 
 default_graph = graph.default_graph
-batch_size=80
+batch_size=30
 opt=optimizer.Optimizer(epoch=200,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,
                         learning_rate=0.0002,optimizer_type='sgd')
 affine=opt.add_fc_layer(opt.input_var, back_layer_size=10, activation='Softmax')
@@ -72,7 +74,7 @@ for i in range(opt.epoch):
     accuracy.append(acc)
 print("Training completed.","accuracy is", accuracy[-1])
 
-#根据训练好的模型在完整测试集上评估准确率
+#根据训练好的模型在完整测试集上评估准确率,对识别错误的样本进行可视化展示
 opt.input_var.set_value(test_data_list)  # set test data as input
 opt.target_var.set_value(t_test_one_hot)  # set test labels as target
 opt.forward()  # forward pass to compute predictions
@@ -80,6 +82,17 @@ test_pred = np.argmax(affine.value, axis=1)
 test_true = np.argmax(opt.target_var.value, axis=1)
 test_acc = np.sum(test_pred == test_true) / test_data_list.shape[0]
 print("Test accuracy:", test_acc)
+# 可视化错误样本
+error_indices = np.where(test_pred != test_true)[0]
+if len(error_indices) > 0:
+    plt.figure(figsize=(10, 10))
+    for i, idx in enumerate(error_indices[:25]):  # show up to 25 errors
+        plt.subplot(5, 5, i + 1)
+        plt.imshow(test_data_list[idx].reshape(28, 28), cmap='gray')
+        plt.title(f"True: {test_true[idx]}, Pred: {test_pred[idx]}")
+        plt.axis('off')
+    plt.tight_layout()
+    plt.show()
 
 
 
