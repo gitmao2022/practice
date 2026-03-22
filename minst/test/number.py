@@ -57,17 +57,18 @@ for i in range(test_label_list.shape[0]):
 
 default_graph = graph.default_graph
 batch_size=30
-opt=optimizer.Optimizer(epoch=200,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,
-                        learning_rate=0.0002,optimizer_type='sgd')
-affine=opt.add_fc_layer(opt.input_var, back_layer_size=10, activation='Softmax')
-opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine, opt.target_var)
+opt=optimizer.Optimizer(epoch=200,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.0002,optimizer_type='sgd')
+#set two layers: one hidden layer with 128 neurons and ReLU activation, and an output layer with 10 neurons and softmax activation
+affine1=opt.add_fc_layer(opt.input_var, back_layer_size=128, activation='ReLU')
+affine2=opt.add_fc_layer(affine1, back_layer_size=10, activation='Softmax')
+opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
 accuracy = []
 # default_graph.draw()
 for i in range(opt.epoch):
     opt.forward_backward()
     opt.forward()
     # record accuracy
-    pred = np.argmax(affine.value, axis=1)
+    pred = np.argmax(affine2.value, axis=1)
     true = np.argmax(opt.target_var.value, axis=1)
     current_loss=opt.loss_node.value.mean()
     acc = np.sum(pred == true) / batch_size
