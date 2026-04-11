@@ -1,4 +1,6 @@
+from datetime import date
 import sys
+from time import time
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
@@ -40,11 +42,14 @@ def read_labels_fast(filename, max_items=None):
     return labels
 
 # 从本地目录中文件train-images-idx3-ubyte以及train-labels-idx1-ubyte加载手写数字数据集
-train_data_list = read_images_fast('./train-images-idx3-ubyte', max_items=1000)
-test_data_list = read_images_fast('./t10k-images-idx3-ubyte', max_items=1000)
-train_label_list = read_labels_fast('./train-labels-idx1-ubyte', max_items=1000)
-test_label_list = read_labels_fast('./t10k-labels-idx1-ubyte', max_items=1000)
+train_data_list = read_images_fast('./train-images-idx3-ubyte', max_items=2000)
+test_data_list = read_images_fast('./t10k-images-idx3-ubyte', max_items=2000)
+train_label_list = read_labels_fast('./train-labels-idx1-ubyte', max_items=2000)
+test_label_list = read_labels_fast('./t10k-labels-idx1-ubyte', max_items=2000)
 
+#Normalize the data to [0,1]
+train_data_list = train_data_list.astype(np.float32) / 255.0
+test_data_list = test_data_list.astype(np.float32) / 255.0
 # transform t_train and  t_test to one-hot vectors
 t_train_one_hot = np.zeros((train_label_list.shape[0], 10))
 for i in range(train_label_list.shape[0]):
@@ -56,15 +61,30 @@ for i in range(test_label_list.shape[0]):
 
 
 default_graph = graph.default_graph
-batch_size=30
-opt=optimizer.Optimizer(epoch=200,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.0002,optimizer_type='sgd')
+batch_size=128
+opt=optimizer.Optimizer(epoch=200,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.002,optimizer_type='adam')
 #set two layers: one hidden layer with 128 neurons and ReLU activation, and an output layer with 10 neurons and softmax activation
-affine1=opt.add_fc_layer(opt.input_var, back_layer_size=128, activation='ReLU')
-affine2=opt.add_fc_layer(affine1, back_layer_size=10, activation='Softmax')
+
+# layer1_size=30
+# layer2_size=10
+# affine1=opt.add_fc_layer(opt.input_var, back_layer_size=layer1_size, activation='ReLU',forward_first=True)  # forward_first=True to compute affine1's value immediately for the next layer's input
+# affine2=opt.add_fc_layer(affine1, back_layer_size=layer2_size, activation='Softmax')
+# opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
+
+#only one layer with 10 neurons and softmax activation
+layer1_size=0
+layer2_size=10
+affine2=opt.add_fc_layer(opt.input_var, back_layer_size=layer2_size, activation='Softmax',forward_first=True)  # forward_first=True to compute affine2's value immediately for the loss node's input
 opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
+
 accuracy = []
 # default_graph.draw()
+#record the total training time
+
+start_time = time()
+
 for i in range(opt.epoch):
+    print(f"Epoch {i+1}/{opt.epoch}")
     opt.forward_backward()
     opt.forward()
     # record accuracy
@@ -73,16 +93,33 @@ for i in range(opt.epoch):
     current_loss=opt.loss_node.value.mean()
     acc = np.sum(pred == true) / batch_size
     accuracy.append(acc)
+end_time = time()
 print("Training completed.","accuracy is", accuracy[-1])
 
 #根据训练好的模型在完整测试集上评估准确率,对识别错误的样本进行可视化展示
 opt.input_var.set_value(test_data_list)  # set test data as input
 opt.target_var.set_value(t_test_one_hot)  # set test labels as target
 opt.forward()  # forward pass to compute predictions
-test_pred = np.argmax(affine.value, axis=1)
+test_pred = np.argmax(affine2.value, axis=1)
 test_true = np.argmax(opt.target_var.value, axis=1)
 test_acc = np.sum(test_pred == test_true) / test_data_list.shape[0]
 print("Test accuracy:", test_acc)
+
+#create a log file to record the training information
+with open('num_training_log.txt', 'a') as f:
+    #first write a separator line to distinguish different training sessions
+    f.write("\n"+"="*50+"\n")
+    f.write(f"Training session at {date.today()}:\n")
+    f.write(f"Epochs: {opt.epoch}\n")
+    f.write(f"Batch size: {opt.batch_size}\n")
+    #calculate layer depth by counting the number of affine layers
+    f.write(f"Layer depth: 2\n")
+    f.write(f"Layer 1 output size: {layer1_size}\n")
+    f.write(f"Layer 2 output size: {layer2_size}\n")
+    f.write(f"Final training accuracy: {accuracy[-1]}\n")
+    f.write(f"Test accuracy: {test_acc}\n")
+    f.write(f"Total training time: {end_time - start_time} seconds\n")
+
 # 可视化错误样本
 error_indices = np.where(test_pred != test_true)[0]
 if len(error_indices) > 0:

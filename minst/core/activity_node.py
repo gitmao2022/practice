@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-22 13:32:25
+@LastEditTime : 2026-03-29 10:49:46
 @FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -36,14 +36,16 @@ class ReLU(Node):
     nslope = 0.1  # 负半轴的斜率
 
     def compute_value(self):
-        return np.mat(np.where(
+        return np.where(
             self.parents[0].value > 0.0,
             self.parents[0].value,
             self.nslope * self.parents[0].value)
-        )
+        
 
     def get_jacobi(self, parent):
+        # considering parent maybe two dimensional, we need to flatten it before creating the diagonal matrix
         return np.diag(np.where(self.parents[0].value.flatten() > 0.0, 1.0, self.nslope))
+
 
         
 class Softmax(Node):

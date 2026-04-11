@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-22 14:01:43
+@LastEditTime : 2026-04-04 09:41:11
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -22,17 +22,24 @@ class Optimizer:
     def gnr_batch_var(self):
         self.batch_no=np.random.choice(self.train_set.shape[0], self.batch_size, replace=False)
         self.input_var.set_value(self.train_set[self.batch_no,:])
+        
+
+
         self.target_var.set_value(self.target_set[self.batch_no,:])
         
     def __init__(self, epoch,batch_size,train_set,target_set,
-                 learning_rate=0.01,optimizer_type='adam'):
+                 learning_rate=0.001,optimizer_type='adam'):
         self.epoch = epoch
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.optimizer_type = optimizer_type
+        self.optimizer_type = optimizer_type.lower()
         self.train_set = train_set
         self.target_set = target_set
         self.jacobi_cache={}
+        # Adam states: first/second moments and global step.
+        self._adam_m = {}
+        self._adam_v = {}
+        self._adam_t = 0
         #train或者target集合可能只有一个维度，所以reshape一下
         if len(self.train_set.shape)==1:
             self.train_set = self.train_set.reshape((-1,1))
@@ -62,10 +69,29 @@ class Optimizer:
                     jacobi_mean=np.mean(node.jacobi,axis=0).reshape(node.shape)   #the reason why we use reshape because the jacobi is a 2D array with shape (batch_size, node.shape) and we need to reshape it to the original shape of the node
                     self.jacobi_cache[node.node_name]=jacobi_mean
             # print(self.jacobi_cache)        
+            if self.optimizer_type == 'adam':
+                self._adam_t += 1
             for node in default_graph.nodes:
                 if isinstance(node, Variable) and node.trainable:
                     jacobi_mean=self.jacobi_cache[node.node_name]
-                    node.set_value(node.value - self.learning_rate * jacobi_mean)
+                    if self.optimizer_type == 'adam':
+                        beta1 = 0.9
+                        beta2 = 0.999
+                        eps = 1e-8
+                        if node.node_name not in self._adam_m:
+                            self._adam_m[node.node_name] = np.zeros_like(node.value)
+                            self._adam_v[node.node_name] = np.zeros_like(node.value)
+                        m = self._adam_m[node.node_name]
+                        v = self._adam_v[node.node_name]
+                        m = beta1 * m + (1 - beta1) * jacobi_mean
+                        v = beta2 * v + (1 - beta2) * (jacobi_mean ** 2)
+                        m_hat = m / (1 - beta1 ** self._adam_t)
+                        v_hat = v / (1 - beta2 ** self._adam_t)
+                        self._adam_m[node.node_name] = m
+                        self._adam_v[node.node_name] = v
+                        node.set_value(node.value - self.learning_rate * m_hat / (np.sqrt(v_hat) + eps))
+                    else:
+                        node.set_value(node.value - self.learning_rate * jacobi_mean)
 
            
     def forward(self):
@@ -76,11 +102,12 @@ class Optimizer:
         # default_graph.clear_changeable_value()
         self.loss_node.forward()
       
-    def add_fc_layer(self,previous_layer, back_layer_size, activation):
+    def add_fc_layer(self,previous_layer, back_layer_size, activation,forward_first=False):
         """
         :param previous_layer: 输入向量
-        :param back_layer_size: 输出向量的维度
+        :param back_layer_size: 输出向量的维度；
         :param activation: 激活函数类型
+        :param forward_first: 是否在添加层后立即进行前向传播,为后续层的输入计算提供数值支持。
         :return: 输出向量
         """
         first_layer_size = previous_layer.value.shape[1]
@@ -88,16 +115,17 @@ class Optimizer:
         bias = Variable((1, back_layer_size), init=True, trainable=True)
         affine = Add(MatMul(previous_layer, weights), bias)
         if activation == "ReLU":
-            return ReLU(affine)
+            affine=ReLU(affine)
         elif activation == "Logistic":
-            return Logistic(affine)
+            affine=Logistic(affine)
         elif activation == "Softmax":
             # 由于SoftMax节点的雅可比矩阵计算存在性能问题,故在损失节点中直接计算SoftMax值并返回交叉熵损失,此处SoftMax函数仅用于计算预测值。
             p=Softmax(affine)
-            return affine
-            
-        else:
-            return affine
+            affine=affine
+
+        if forward_first:
+            affine.forward()      
+        return affine
 
 
 

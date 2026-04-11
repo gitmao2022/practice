@@ -47,15 +47,16 @@ class Add(Node):
             # Not use broadcast
             return np.eye(self.dimension())
         else:
-            # Broadcast case, assume parent is a vector (e.g. bias) added to each row
-            # But the original code was returning np.ones((self.shape[0], parent.shape[1])) which is weird. 
-            # If we assume parent is (1, M) broadcasting to (N, M), Jacobian is (NM, M) block diagonal...
-            # However, sticking to the user's request to 'extend parent dimension to 1D'.
-            # If the user means flatten parent, use parent.dimension().
-            
-            # Reverting to what seems safer or correcting the specific shape access:
-            
-            return np.ones((self.dimension(), parent.dimension()))
+            # Broadcast case for y = x + b, where x is (N, M) and b is (1, M).
+            # d vec(y) / d vec(b) = kron(ones(N, 1), I_M), shape (N*M, M).
+            if len(self.value.shape) == 2 and len(parent.value.shape) == 2:
+                n, m = self.value.shape
+                if parent.value.shape == (1, m):
+                    return np.kron(np.ones((n, 1)), np.eye(m))
+
+            raise ValueError(
+                f"Unsupported broadcast in Add.get_jacobi: self.shape={self.value.shape}, parent.shape={parent.value.shape}"
+            )
 
 
 class MatMul(Node):
@@ -66,7 +67,6 @@ class MatMul(Node):
         super().__init__(*parents, **kargs)
         self.transposition=transposition
 
-        
     def compute_value(self):
         assert len(self.parents) == 2 and self.parents[0].shape[
             1] == self.parents[1].shape[0]
