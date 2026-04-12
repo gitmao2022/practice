@@ -16,7 +16,6 @@ def read_images_fast(filename, max_items=None):
         data = np.load(npy_file)
     else:
         with open(filename, 'rb') as f:
-            magic = int.from_bytes(f.read(4), 'big')
             num = int.from_bytes(f.read(4), 'big')
             rows = int.from_bytes(f.read(4), 'big')
             cols = int.from_bytes(f.read(4), 'big')
@@ -33,7 +32,6 @@ def read_labels_fast(filename, max_items=None):
         labels = np.load(npy_file)
     else:
         with open(filename, 'rb') as f:
-            magic = int.from_bytes(f.read(4), 'big')
             num = int.from_bytes(f.read(4), 'big')
         labels = np.fromfile(filename, dtype=np.uint8, offset=8)
         np.save(npy_file, labels)
@@ -42,12 +40,12 @@ def read_labels_fast(filename, max_items=None):
     return labels
 
 # 从本地目录中文件train-images-idx3-ubyte以及train-labels-idx1-ubyte加载手写数字数据集
-train_data_list = read_images_fast('./train-images-idx3-ubyte', max_items=2000)
-test_data_list = read_images_fast('./t10k-images-idx3-ubyte', max_items=2000)
-train_label_list = read_labels_fast('./train-labels-idx1-ubyte', max_items=2000)
-test_label_list = read_labels_fast('./t10k-labels-idx1-ubyte', max_items=2000)
+train_data_list = read_images_fast('./train-images-idx3-ubyte')
+test_data_list = read_images_fast('./t10k-images-idx3-ubyte')
+train_label_list = read_labels_fast('./train-labels-idx1-ubyte')
+test_label_list = read_labels_fast('./t10k-labels-idx1-ubyte')
 
-#Normalize the data to [0,1]
+# Normalize the data to [0,1]
 train_data_list = train_data_list.astype(np.float32) / 255.0
 test_data_list = test_data_list.astype(np.float32) / 255.0
 # transform t_train and  t_test to one-hot vectors
@@ -62,8 +60,8 @@ for i in range(test_label_list.shape[0]):
 
 default_graph = graph.default_graph
 batch_size=128
-opt=optimizer.Optimizer(epoch=200,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.002,optimizer_type='adam')
-#set two layers: one hidden layer with 128 neurons and ReLU activation, and an output layer with 10 neurons and softmax activation
+opt=optimizer.Optimizer(epoch=150,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.006,optimizer_type='adam')
+# set two layers: one hidden layer with 128 neurons and ReLU activation, and an output layer with 10 neurons and softmax activation
 
 # layer1_size=30
 # layer2_size=10
@@ -112,6 +110,8 @@ with open('num_training_log.txt', 'a') as f:
     f.write(f"Training session at {date.today()}:\n")
     f.write(f"Epochs: {opt.epoch}\n")
     f.write(f"Batch size: {opt.batch_size}\n")
+    f.write(f"Learning rate: {opt.learning_rate}\n")
+
     #calculate layer depth by counting the number of affine layers
     f.write(f"Layer depth: 2\n")
     f.write(f"Layer 1 output size: {layer1_size}\n")

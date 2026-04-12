@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-04-04 09:41:11
+@LastEditTime : 2026-04-12 20:29:20
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -69,12 +69,11 @@ class Optimizer:
                     jacobi_mean=np.mean(node.jacobi,axis=0).reshape(node.shape)   #the reason why we use reshape because the jacobi is a 2D array with shape (batch_size, node.shape) and we need to reshape it to the original shape of the node
                     self.jacobi_cache[node.node_name]=jacobi_mean
             # print(self.jacobi_cache)        
-            if self.optimizer_type == 'adam':
-                self._adam_t += 1
             for node in default_graph.nodes:
                 if isinstance(node, Variable) and node.trainable:
                     jacobi_mean=self.jacobi_cache[node.node_name]
                     if self.optimizer_type == 'adam':
+                        self._adam_t += 1
                         beta1 = 0.9
                         beta2 = 0.999
                         eps = 1e-8
