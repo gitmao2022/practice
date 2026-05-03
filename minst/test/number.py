@@ -59,21 +59,21 @@ for i in range(test_label_list.shape[0]):
 
 
 default_graph = graph.default_graph
-batch_size=128
-opt=optimizer.Optimizer(epoch=150,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.006,optimizer_type='adam')
+batch_size=64
+opt=optimizer.Optimizer(epoch=100,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.006,optimizer_type='adam')
 # set two layers: one hidden layer with 128 neurons and ReLU activation, and an output layer with 10 neurons and softmax activation
 
-# layer1_size=30
-# layer2_size=10
-# affine1=opt.add_fc_layer(opt.input_var, back_layer_size=layer1_size, activation='ReLU',forward_first=True)  # forward_first=True to compute affine1's value immediately for the next layer's input
-# affine2=opt.add_fc_layer(affine1, back_layer_size=layer2_size, activation='Softmax')
-# opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
-
-#only one layer with 10 neurons and softmax activation
-layer1_size=0
+layer1_size=30
 layer2_size=10
-affine2=opt.add_fc_layer(opt.input_var, back_layer_size=layer2_size, activation='Softmax',forward_first=True)  # forward_first=True to compute affine2's value immediately for the loss node's input
+affine1=opt.add_fc_layer(opt.input_var, back_layer_size=layer1_size, activation='ReLU',forward_first=True) 
+affine2=opt.add_fc_layer(affine1, back_layer_size=layer2_size, activation='Softmax',forward_first=True)  
 opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
+
+# #only one layer with 10 neurons and softmax activation
+# layer1_size=0
+# layer2_size=10
+# affine2=opt.add_fc_layer(opt.input_var, back_layer_size=layer2_size, activation='Softmax',forward_first=True)  # forward_first=True to compute affine2's value immediately for the loss node's input
+# opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
 
 accuracy = []
 # default_graph.draw()
@@ -92,7 +92,7 @@ for i in range(opt.epoch):
     acc = np.sum(pred == true) / batch_size
     accuracy.append(acc)
 end_time = time()
-print("Training completed.","accuracy is", accuracy[-1])
+print("Training completed.","accuracy is", accuracy)
 
 #根据训练好的模型在完整测试集上评估准确率,对识别错误的样本进行可视化展示
 opt.input_var.set_value(test_data_list)  # set test data as input
@@ -111,6 +111,7 @@ with open('num_training_log.txt', 'a') as f:
     f.write(f"Epochs: {opt.epoch}\n")
     f.write(f"Batch size: {opt.batch_size}\n")
     f.write(f"Learning rate: {opt.learning_rate}\n")
+    f.write(f"Optimizer type: {opt.optimizer_type}\n")
 
     #calculate layer depth by counting the number of affine layers
     f.write(f"Layer depth: 2\n")
