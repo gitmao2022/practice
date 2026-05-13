@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-04-12 20:29:20
+@LastEditTime : 2026-05-06 20:35:03
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -62,7 +62,7 @@ class Optimizer:
             #重新生成batch数据
             self.gnr_batch_var()
             self.forward()
-            # default_graph.draw()
+            default_graph.draw()
             for node in default_graph.nodes:
                 if isinstance(node, Variable) and node.trainable and self.jacobi_cache.get(node.node_name) is None:
                     node.backward(self.loss_node)

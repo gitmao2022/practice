@@ -1,0 +1,382 @@
+
+
+==================================================
+Training session at 2026-04-09:
+Epochs: 100
+Batch size: 64
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.859375
+Test accuracy: 0.7645
+Total training time: 6.414021730422974 seconds
+
+==================================================
+Training session at 2026-04-09:
+Epochs: 200
+Batch size: 128
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.875
+Test accuracy: 0.814
+Total training time: 29.055262804031372 seconds
+
+==================================================
+Training session at 2026-04-09:
+Epochs: 200
+Batch size: 128
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.8828125
+Test accuracy: 0.835
+Total training time: 28.83681869506836 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 200
+Batch size: 128
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.96875
+Test accuracy: 0.8395
+Total training time: 27.706960916519165 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 200
+Batch size: 256
+Learning rate: 0.004
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.953125
+Test accuracy: 0.8475
+Total training time: 68.34063768386841 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 200
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.9296875
+Test accuracy: 0.8626666666666667
+Total training time: 27.850165367126465 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 300
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.953125
+Test accuracy: 0.863
+Total training time: 42.17943334579468 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 300
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.734375
+Test accuracy: 0.723
+Total training time: 42.13753890991211 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 300
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.8515625
+Test accuracy: 0.7313333333333333
+Total training time: 43.20679593086243 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 300
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.984375
+Test accuracy: 0.8643333333333333
+Total training time: 42.55238461494446 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 100
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.9140625
+Test accuracy: 0.9052
+Total training time: 14.044064283370972 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 150
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.953125
+Test accuracy: 0.9105
+Total training time: 21.247479677200317 seconds
+
+==================================================
+Training session at 2026-04-12:
+Epochs: 150
+Batch size: 128
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.890625
+Test accuracy: 0.9076
+Total training time: 22.664332151412964 seconds
+
+==================================================
+Training session at 2026-04-16:
+Epochs: 150
+Batch size: 256
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.8984375
+Test accuracy: 0.9138
+Total training time: 50.882062911987305 seconds
+
+==================================================
+Training session at 2026-04-16:
+Epochs: 200
+Batch size: 256
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.91796875
+Test accuracy: 0.916
+Total training time: 67.57807064056396 seconds
+
+==================================================
+Training session at 2026-04-16:
+Epochs: 200
+Batch size: 256
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.91796875
+Test accuracy: 0.9147
+Total training time: 67.44787955284119 seconds
+
+==================================================
+Training session at 2026-04-16:
+Epochs: 200
+Batch size: 256
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.80078125
+Test accuracy: 0.7911
+Total training time: 67.02125573158264 seconds
+
+==================================================
+Training session at 2026-04-16:
+Epochs: 200
+Batch size: 256
+Learning rate: 0.006
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.81640625
+Test accuracy: 0.7931
+Total training time: 66.55273747444153 seconds
+
+==================================================
+Training session at 2026-04-16:
+Epochs: 200
+Batch size: 256
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 0
+Layer 2 output size: 10
+Final training accuracy: 0.91015625
+Test accuracy: 0.9147
+Total training time: 66.76256704330444 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 60
+Batch size: 128
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.890625
+Test accuracy: 0.8973
+Total training time: 88.40014481544495 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.875
+Test accuracy: 0.8985
+Total training time: 63.909761905670166 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.90625
+Test accuracy: 0.8938
+Total training time: 64.33727884292603 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.96875
+Test accuracy: 0.9013
+Total training time: 64.26997351646423 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: none
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.140625
+Test accuracy: 0.1027
+Total training time: 64.75044775009155 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: none
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.09375
+Test accuracy: 0.1032
+Total training time: 64.44580030441284 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: none
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.234375
+Test accuracy: 0.1877
+Total training time: 63.07893967628479 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.84375
+Test accuracy: 0.8943
+Total training time: 63.655341148376465 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.0002
+Optimizer type: none
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.0625
+Test accuracy: 0.1136
+Total training time: 65.21815705299377 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.921875
+Test accuracy: 0.8951
+Total training time: 64.25212216377258 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.0002
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.703125
+Test accuracy: 0.5956
+Total training time: 65.58812832832336 seconds
+
+==================================================
+Training session at 2026-04-19:
+Epochs: 150
+Batch size: 64
+Learning rate: 0.0002
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.71875
+Test accuracy: 0.713
+Total training time: 98.21849822998047 seconds
