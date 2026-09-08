@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2023-03-10 21:44:51
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-02-15 21:39:42
+@LastEditTime : 2026-05-23 16:40:32
 @FilePath     : npas.py
 @Copyright (C) 2023  by gimao2022. All rights reserved.
 '''
@@ -79,20 +79,3 @@ def sigmoid_derivative(X):
 
 
 
-# 定义softmax函数及其导数
-def softmax(x):
-    x -= np.max(x,keepdims=True)
-    exp_x = np.exp(x)
-    return exp_x / np.sum(exp_x, keepdims=True)
-
-def softmax_derivative(x):
-    return softmax(x) * (1 - softmax(x))
-
-# 定义Relu函数及其导数
-def Relu(x):
-    return np.maximum(0, x)
-
-def Relu_derivative(x):
-    x[x<=0] = 0
-    x[x>0] = 1
-    return x

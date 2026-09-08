@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2025-05-05 19:26:35
+@LastEditTime : 2026-09-08 17:08:52
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -63,9 +63,6 @@ class MatMul(Node):
     """
     矩阵乘法
     """
-    def __init__(self, *parents, transposition=False,**kargs):
-        super().__init__(*parents, **kargs)
-        self.transposition=transposition
 
     def compute_value(self):
         assert len(self.parents) == 2 and self.parents[0].shape[
@@ -128,65 +125,100 @@ class Multiply(Node):
 
 class Convolve(Node):
     """
-    以第二个父节点的值为滤波器，对第一个父节点的值做二维离散卷积
+    使用一个二维卷积核对一个二维输入矩阵进行离散卷积。
+
+    约定：
+    - data.shape == (height, width)
+    - kernel.shape == (kernel_height, kernel_width)
+    - value.shape == (height, width)
+    - jacobi.shape == (output_dimension, parent_dimension)
     """
 
     def __init__(self, *parents, **kargs):
         assert len(parents) == 2
         Node.__init__(self, *parents, **kargs)
 
-        self.padded = None
+    def _validated_values(self):
+        data = self.parents[0].value
+        kernel = self.parents[1].value
+        assert data.ndim == 2, "data should have shape (H, W)"
+        assert kernel.ndim == 2, "kernel should have shape (KH, KW)"
+        return data, kernel
 
     def compute_value(self):
+        data, kernel = self._validated_values()
+        height, width = data.shape
+        kernel_height, kernel_width = kernel.shape
+        half_height, half_width = kernel_height // 2, kernel_width // 2
+        result = np.zeros((height, width))
 
-        data = self.parents[0].value  # 图像
-        kernel = self.parents[1].value  # 滤波器
+        for row in range(height):
+            row_start = max(0, row - half_height)
+            row_stop = min(height, row + kernel_height - half_height)
+            kernel_row_start = row_start - row + half_height
 
-        w, h = data.shape  # 图像的宽和高
-        kw, kh = kernel.shape  # 滤波器尺寸
-        hkw, hkh = int(kw / 2), int(kh / 2)  # 滤波器长宽的一半
+            for col in range(width):
+                col_start = max(0, col - half_width)
+                col_stop = min(width, col + kernel_width - half_width)
+                kernel_col_start = col_start - col + half_width
 
-        # 补齐数据边缘
-        pw, ph = tuple(np.add(data.shape, np.multiply((hkw, hkh), 2)))
-        self.padded = np.mat(np.zeros((pw, ph)))
-        self.padded[hkw:hkw + w, hkh:hkh + h] = data
+                window = data[row_start:row_stop, col_start:col_stop]
+                kernel_window = kernel[
+                    kernel_row_start:kernel_row_start + row_stop - row_start,
+                    kernel_col_start:kernel_col_start + col_stop - col_start
+                ]
+                result[row, col] = np.sum(window * kernel_window)
 
-        self.value = np.mat(np.zeros((w, h)))
-
-        # 二维离散卷积
-        for i in np.arange(hkw, hkw + w):
-            for j in np.arange(hkh, hkh + h):
-                self.value[i - hkw, j - hkh] = np.sum(
-                    np.multiply(self.padded[i - hkw:i - hkw + kw, j - hkh:j - hkh + kh], kernel))
+        return result
 
     def get_jacobi(self, parent):
+        data, kernel = self._validated_values()
+        assert parent in self.parents
 
-        data = self.parents[0].value  # 图像
-        kernel = self.parents[1].value  # 滤波器
+        height, width = data.shape
+        kernel_height, kernel_width = kernel.shape
+        half_height, half_width = kernel_height // 2, kernel_width // 2
+        output_dimension = height * width
 
-        w, h = data.shape  # 图像的宽和高
-        kw, kh = kernel.shape  # 滤波器尺寸
-        hkw, hkh = int(kw / 2), int(kh / 2)  # 滤波器长宽的一半
-
-        # 补齐数据边缘
-        pw, ph = tuple(np.add(data.shape, np.multiply((hkw, hkh), 2)))
-
-        jacobi = []
         if parent is self.parents[0]:
-            for i in np.arange(hkw, hkw + w):
-                for j in np.arange(hkh, hkh + h):
-                    mask = np.mat(np.zeros((pw, ph)))
-                    mask[i - hkw:i - hkw + kw, j - hkh:j - hkh + kh] = kernel
-                    jacobi.append(mask[hkw:hkw + w, hkh:hkh + h].A1)
-        elif parent is self.parents[1]:
-            for i in np.arange(hkw, hkw + w):
-                for j in np.arange(hkh, hkh + h):
-                    jacobi.append(
-                        self.padded[i - hkw:i - hkw + kw, j - hkh:j - hkh + kh].A1)
-        else:
-            raise Exception("You're not my father")
+            jacobi = np.zeros((output_dimension, output_dimension))
 
-        return np.mat(jacobi)
+            for row in range(height):
+                for col in range(width):
+                    output_index = row * width + col
+                    for kernel_row in range(kernel_height):
+                        input_row = row + kernel_row - half_height
+                        if not 0 <= input_row < height:
+                            continue
+                        for kernel_col in range(kernel_width):
+                            input_col = col + kernel_col - half_width
+                            if 0 <= input_col < width:
+                                input_index = input_row * width + input_col
+                                jacobi[output_index, input_index] = kernel[
+                                    kernel_row, kernel_col
+                                ]
+
+            return jacobi
+
+        parent_dimension = kernel_height * kernel_width
+        jacobi = np.zeros((output_dimension, parent_dimension))
+
+        for row in range(height):
+            for col in range(width):
+                output_index = row * width + col
+                for kernel_row in range(kernel_height):
+                    input_row = row + kernel_row - half_height
+                    if not 0 <= input_row < height:
+                        continue
+                    for kernel_col in range(kernel_width):
+                        input_col = col + kernel_col - half_width
+                        if 0 <= input_col < width:
+                            jacobi[
+                                output_index,
+                                kernel_row * kernel_width + kernel_col
+                            ] = data[input_row, input_col]
+
+        return jacobi
 
 
 class MaxPooling(Node):

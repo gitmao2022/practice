@@ -380,3 +380,29 @@ Layer 2 output size: 10
 Final training accuracy: 0.71875
 Test accuracy: 0.713
 Total training time: 98.21849822998047 seconds
+
+==================================================
+Training session at 2026-05-14:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.875
+Test accuracy: 0.9066
+Total training time: 111.51682710647583 seconds
+
+==================================================
+Training session at 2026-09-07:
+Epochs: 100
+Batch size: 64
+Learning rate: 0.006
+Optimizer type: adam
+Layer depth: 2
+Layer 1 output size: 30
+Layer 2 output size: 10
+Final training accuracy: 0.9375
+Test accuracy: 0.892
+Total training time: 116.95756816864014 seconds

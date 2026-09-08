@@ -1,10 +1,10 @@
 '''
-@Description  : 创建神经网络节点节点
+@Description  : Create neural network nodes
 @Version      : 1.0
 @Author       : gitmao2022
 @Date         : 2025-02-15 21:15:34
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-02-21 22:10:57
+@LastEditTime : 2026-09-08 17:04:17
 @FilePath     : node.py
 @Copyright (C) 2025  by ${gimao2022}. All rights reserved.
 '''
@@ -14,9 +14,10 @@ from abc import abstractmethod
 from .graph import default_graph
 
 
+
 class Node(object):
     """
-    节点基类
+    Base class for nodes.
     """
     def __init__(self, *parents, **kargs):
         
@@ -29,23 +30,26 @@ class Node(object):
         self.need_save = kargs.get('need_save', True)
         self.node_name = kargs.get('node_name', '{}:{}'.format( 
             self.__class__.__name__, self.graph.node_count()))
-        # 将本节点添加到父节点的子节点列表中 
+        # Add this node to each parent's list of children.
         for parent in self.parents:
             parent.children.append(self)
-        # 将本节点添加到计算图中
+        # Add this node to the computation graph.
         self.graph.add_node(self)
 
     def set_value(self, value, clear=True):
         """
-        设置节点的值
+        Set the node's value.
         """
+        # Node values are not restricted to three dimensions.
+        if not isinstance(value, np.ndarray):
+            value = np.asarray(value)
         if clear:
             self.clear_value()
         self.value = value
 
     def get_value(self):
         """
-        获取节点的值
+        Get the node's value.
         """
         return self.value
     
@@ -58,7 +62,7 @@ class Node(object):
 
     def clear_jacobi(self):
         """
-        清空结果节点对本节点的雅可比矩阵
+        Clear the Jacobian of the result node with respect to this node.
         """
         self.jacobi = None
 
@@ -71,7 +75,7 @@ class Node(object):
     @property
     def shape(self):
         """
-        返回节点值的形状
+        Return the shape of the node's value.
         """
         return self.value.shape
     
@@ -87,17 +91,18 @@ class Node(object):
 
     def dimension(self):
         """
-        返回本节点的值展平成向量后的维数,不限于二维向量
+        Return the dimension of the node's flattened value, including values beyond two dimensions.
         """
         return np.prod(self.shape)
     
     def backward(self, result):
         """
-        反向传播，计算结果节点对本节点的雅可比矩阵
+        Perform backpropagation and compute the result node's Jacobian with respect to this node.
         """
         if self.jacobi is None:
             if self is result:
                 self.jacobi = np.eye(self.dimension())
+
             else:
                 self.jacobi = np.zeros((result.dimension(), self.dimension()))
                 for child in self.children:

@@ -39,7 +39,7 @@ def read_labels_fast(filename, max_items=None):
         return labels[:max_items]
     return labels
 
-# 从本地目录中文件train-images-idx3-ubyte以及train-labels-idx1-ubyte加载手写数字数据集
+# 从本地目录中文件train-images-idx3-ubyte以及train-labels-idx1-ubyte加载手写数字数据集=
 train_data_list = read_images_fast('./train-images-idx3-ubyte')
 test_data_list = read_images_fast('./t10k-images-idx3-ubyte')
 train_label_list = read_labels_fast('./train-labels-idx1-ubyte')

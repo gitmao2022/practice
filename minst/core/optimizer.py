@@ -1,12 +1,12 @@
 '''
 @Description  : file content
-@Version      : 1.0
+@Version      : 1.1
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-05-06 20:35:03
+@LastEditTime : 2026-05-20 17:13:55
 @FilePath     : optimizer.py
-@Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
+@Copyright (C) 2025  by gitmao2022. All rights reserved.
 '''
 
 from .graph import *
@@ -62,7 +62,7 @@ class Optimizer:
             #重新生成batch数据
             self.gnr_batch_var()
             self.forward()
-            default_graph.draw()
+            # default_graph.draw()
             for node in default_graph.nodes:
                 if isinstance(node, Variable) and node.trainable and self.jacobi_cache.get(node.node_name) is None:
                     node.backward(self.loss_node)
@@ -126,6 +126,34 @@ class Optimizer:
             affine.forward()      
         return affine
 
+    def add_conv_layer(self,previous_layer,filter_size,num_filters=1,stride=1,padding=0,activation=None,forward_first=False):
+        """
+        :param previous_layer: 输入特征图
+        :param filter_size: 卷积核的尺寸，通常为一个整数，表示卷积核的宽度和高度（假设卷积核是方形的）。
+        :param num_filters: 卷积核的数量，即输出特征图的深度。
+        :param stride: 卷积操作的步长，默认为1。
+        :param padding: 卷积操作的填充方式，可以是整数（表示填充的像素数）或字符串（如'valid'或'same'），默认为0。
+        :param activation: 激活函数类型，可以是'ReLU'、'Logistic'、'Softmax'等，默认为None表示不使用激活函数。
+        :param forward_first: 是否在添加层后立即进行前向传播,为后续层的输入计算提供数值支持。
+        :return: 输出特征图
+        """
+        # input_channels = previous_layer.value.shape[1]  # 输入特征图的通道数
+        # filters = Variable((num_filters, input_channels, filter_size, filter_size), init=True, trainable=True)
+        # bias = Variable((num_filters,), init=True, trainable=True)
+        # conv = Conv2D(previous_layer, filters, bias, stride=stride, padding=padding)
+        
+        # if activation == "ReLU":
+        #     conv=ReLU(conv)
+        # elif activation == "Logistic":
+        #     conv=Logistic(conv)
+        # elif activation == "Softmax":
+        #     # 由于SoftMax节点的雅可比矩阵计算存在性能问题,故在损失节点中直接计算SoftMax值并返回交叉熵损失,此处SoftMax函数仅用于计算预测值。
+        #     p=Softmax(conv)
+        #     conv=conv
+
+        # if forward_first:
+        #     conv.forward()      
+        # return conv
 
 
 

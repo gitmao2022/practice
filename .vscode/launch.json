@@ -3,10 +3,14 @@
     "configurations": [
         {
             "name": "Python: 当前文件",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "cwd": "${fileDirname}"
+            "cwd": "${fileDirname}",
+            "console": "internalConsole", // 用内置调试控制台，跳过终端里 conda 激活（最耗时的步骤）
+            "justMyCode": true, // 只调试自己的代码，不进入库代码
+            "stopOnEntry": false,
+            "subProcess": false // 不监视子进程，减少开销
         }
     ]
 }
