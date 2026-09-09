@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-09-09 13:26:31
+@LastEditTime : 2026-09-09 22:07:57
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -456,10 +456,15 @@ class MaxPooling(Node):
 
         # 批量：每张输出图像只依赖对应的输入图像，
         # 整体雅可比是由各图像 flag 构成的块对角矩阵。
-        # 为避免一次性构造巨大的稠密矩阵，用 scipy.sparse 或逐块填充。
-        # 这里用块对角稠密矩阵（与框架其余部分保持一致）。
-        from scipy import sparse
-        return sparse.block_diag(self.flag).toarray()
+        block_rows, block_cols = self.flag[0].shape
+        jacobi = np.zeros((len(self.flag) * block_rows,
+                           len(self.flag) * block_cols))
+        for index, block in enumerate(self.flag):
+            row_start = index * block_rows
+            col_start = index * block_cols
+            jacobi[row_start:row_start + block_rows,
+                   col_start:col_start + block_cols] = block
+        return jacobi
 
 
 class Concat(Node):
