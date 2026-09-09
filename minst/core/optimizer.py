@@ -126,34 +126,47 @@ class Optimizer:
             affine.forward()      
         return affine
 
-    def add_conv_layer(self,previous_layer,filter_size,num_filters=1,stride=1,padding=0,activation=None,forward_first=False):
+    def add_conv_layer(self, previous_layer, filter_size, image_shape, activation=None, forward_first=False):
         """
-        :param previous_layer: 输入特征图
-        :param filter_size: 卷积核的尺寸，通常为一个整数，表示卷积核的宽度和高度（假设卷积核是方形的）。
-        :param num_filters: 卷积核的数量，即输出特征图的深度。
-        :param stride: 卷积操作的步长，默认为1。
-        :param padding: 卷积操作的填充方式，可以是整数（表示填充的像素数）或字符串（如'valid'或'same'），默认为0。
-        :param activation: 激活函数类型，可以是'ReLU'、'Logistic'、'Softmax'等，默认为None表示不使用激活函数。
-        :param forward_first: 是否在添加层后立即进行前向传播,为后续层的输入计算提供数值支持。
-        :return: 输出特征图
-        """
-        # input_channels = previous_layer.value.shape[1]  # 输入特征图的通道数
-        # filters = Variable((num_filters, input_channels, filter_size, filter_size), init=True, trainable=True)
-        # bias = Variable((num_filters,), init=True, trainable=True)
-        # conv = Conv2D(previous_layer, filters, bias, stride=stride, padding=padding)
-        
-        # if activation == "ReLU":
-        #     conv=ReLU(conv)
-        # elif activation == "Logistic":
-        #     conv=Logistic(conv)
-        # elif activation == "Softmax":
-        #     # 由于SoftMax节点的雅可比矩阵计算存在性能问题,故在损失节点中直接计算SoftMax值并返回交叉熵损失,此处SoftMax函数仅用于计算预测值。
-        #     p=Softmax(conv)
-        #     conv=conv
+        添加一个卷积层（单卷积核、same 卷积，输出尺寸与输入图像一致）。
 
-        # if forward_first:
-        #     conv.forward()      
-        # return conv
+        :param previous_layer: 输入节点，形状 (N, H*W)，N 为图像数量，每行为一张拉平的图像。
+        :param filter_size: 卷积核尺寸（整数，方形核的边长）。
+        :param image_shape: 二元组 (H, W)，图像真实的高和宽，用于 Convolve 内部还原形状。
+        :param activation: 激活函数类型，可以是 'ReLU'、'Logistic' 等，None 表示不使用激活函数。
+        :param forward_first: 是否在添加层后立即进行前向传播。
+        :return: 卷积层的输出节点，形状仍为 (N, H*W)。
+        """
+        # 卷积核是可训练变量，形状 (filter_size, filter_size)
+        kernel = Variable((filter_size, filter_size), init=True, trainable=True)
+        # Convolve 节点内部完成 (N, H*W) -> (N, H, W) 卷积 -> (N, H*W) 的转换
+        conv = Convolve(previous_layer, kernel, image_shape=image_shape)
+
+        if activation == "ReLU":
+            conv = ReLU(conv)
+        elif activation == "Logistic":
+            conv = Logistic(conv)
+
+        if forward_first:
+            conv.forward()
+        return conv
+
+    def add_pool_layer(self, previous_layer, image_shape, size=(2, 2), stride=(2, 2), forward_first=False):
+        """
+        添加一个最大池化层，对图像进行下采样压缩。
+
+        :param previous_layer: 输入节点，形状 (N, H*W)。
+        :param image_shape: 二元组 (H, W)，输入图像真实的高和宽。
+        :param size: 二元组 (KH, KW)，池化窗口尺寸，默认 (2, 2)。
+        :param stride: 二元组 (SH, SW)，步长，默认 (2, 2)。
+        :param forward_first: 是否在添加层后立即进行前向传播。
+        :return: 池化层输出节点，形状 (N, out_H*out_W)。
+        """
+        pool = MaxPooling(previous_layer, image_shape=image_shape,
+                          size=size, stride=stride)
+        if forward_first:
+            pool.forward()
+        return pool
 
 
 

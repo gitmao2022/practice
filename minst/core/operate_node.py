@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-09-08 17:08:52
+@LastEditTime : 2026-09-09 13:26:31
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -125,36 +125,65 @@ class Multiply(Node):
 
 class Convolve(Node):
     """
-    使用一个二维卷积核对一个二维输入矩阵进行离散卷积。
+    使用一个二维卷积核对批量图像数据进行离散卷积（same 卷积，输出图像尺寸与输入一致）。
 
-    约定：
-    - data.shape == (height, width)
-    - kernel.shape == (kernel_height, kernel_width)
-    - value.shape == (height, width)
-    - jacobi.shape == (output_dimension, parent_dimension)
+    输入数据恒为二维结构：第 1 维是图像数量 N，第 2 维是图像拉平后的数据（H*W）。
+    本节点在前向与反向传播的计算内部，将每行拉平数据还原为 (H, W) 的二维图像；
+    一旦跳出本节点的计算（compute_value / get_jacobi 返回），
+    数据依然是 (N, H*W) 的二维原始结构，以便后续运算。
+
+    父节点：
+        parents[0]: 图像数据，形状 (N, H*W)。
+        parents[1]: 卷积核，形状 (KH, KW)。
+
+    kargs:
+        image_shape: 二元组 (H, W)，图像真实的高和宽，必须提供。
     """
 
     def __init__(self, *parents, **kargs):
         assert len(parents) == 2
         Node.__init__(self, *parents, **kargs)
+        self.image_shape = kargs.get('image_shape')
+        assert self.image_shape is not None, \
+            "image_shape (height, width) is required"
+        self.image_shape = tuple(self.image_shape)
+        assert len(self.image_shape) == 2, \
+            "image_shape should be a tuple (height, width)"
 
     def _validated_values(self):
         data = self.parents[0].value
         kernel = self.parents[1].value
-        assert data.ndim == 2, "data should have shape (H, W)"
+        height, width = self.image_shape
+        assert data.ndim == 2, "data should have shape (N, H*W)"
+        assert data.shape[1] == height * width, \
+            "flattened dimension of data should equal H*W of image_shape"
         assert kernel.ndim == 2, "kernel should have shape (KH, KW)"
         return data, kernel
 
-    def compute_value(self):
-        data, kernel = self._validated_values()
-        height, width = data.shape
+    def _to_images(self, data):
+        """
+        将 (N, H*W) 的批量拉平数据还原为 (N, H, W) 的二维图像序列。
+        """
+        height, width = self.image_shape
+        return data.reshape(-1, height, width)
+
+    def _convolve_single(self, image, kernel):
+        """
+        使用一个二维卷积核对一张二维图像进行离散卷积。
+        """
+        height, width = image.shape
         kernel_height, kernel_width = kernel.shape
         half_height, half_width = kernel_height // 2, kernel_width // 2
         result = np.zeros((height, width))
 
         for row in range(height):
+
+            # 卷积核滑动时每次计算的开始和结束行
             row_start = max(0, row - half_height)
             row_stop = min(height, row + kernel_height - half_height)
+            # 用 row_start - (row - half_height) 更易理解：
+            # kernel_start 本来应该从第 0 行开始，因为原图像截去了
+            # row_start - (row - half_height) 行，所以 kernel_start 相应地向下移动
             kernel_row_start = row_start - row + half_height
 
             for col in range(width):
@@ -162,7 +191,7 @@ class Convolve(Node):
                 col_stop = min(width, col + kernel_width - half_width)
                 kernel_col_start = col_start - col + half_width
 
-                window = data[row_start:row_stop, col_start:col_stop]
+                window = image[row_start:row_stop, col_start:col_stop]
                 kernel_window = kernel[
                     kernel_row_start:kernel_row_start + row_stop - row_start,
                     kernel_col_start:kernel_col_start + col_stop - col_start
@@ -171,117 +200,266 @@ class Convolve(Node):
 
         return result
 
+    def compute_value(self):
+        data, kernel = self._validated_values()
+        images = self._to_images(data)
+        result = np.array([self._convolve_single(image, kernel)
+                           for image in images])
+        # 将 (N, H, W) 的卷积结果拉平，还原成 (N, H*W) 的二维原始结构
+        return result.reshape(data.shape)
+
+    def _jacobi_single_data(self, image_shape, kernel):
+        """
+        单张图像的卷积结果对输入图像的雅可比矩阵。
+
+        数学背景：
+            前向公式（same 卷积，核不翻转）：
+                result[r, c] = Σ_i Σ_j  image[r-hh+i, c-hw+j] * kernel[i, j]
+            其中 hh = KH//2, hw = KW//2，求和只对不越界的图像位置进行。
+
+            由上式可知，输出像素 result[r, c] 对某个输入像素 image[r', c']
+            的偏导数，就是卷积核上与其配对的那个权重：
+                ∂result[r, c] / ∂image[r', c'] = kernel[r'-r+hh, c'-c+hw]
+            （若 (r', c') 不在以 (r, c) 为锚点的核覆盖范围内，则偏导为 0）
+
+        矩阵布局：
+            输出图像和输入图像都按“行优先”拉平成一维向量：
+                拉平下标 = 行号 * width + 列号
+            雅可比矩阵形状为 (H*W, H*W)：
+                行 = 输出像素的拉平下标，列 = 输入像素的拉平下标。
+            即 jacobi[输出像素, 输入像素] = 该输出对该输入的偏导数。
+
+        参数：
+            image_shape: (H, W)，图像的真实高宽（只需形状，无需具体数值，
+                         因为偏导数只取决于卷积核，不取决于图像内容）。
+            kernel: (KH, KW) 的卷积核。
+        """
+        height, width = image_shape
+        kernel_height, kernel_width = kernel.shape
+        half_height, half_width = kernel_height // 2, kernel_width // 2
+        image_dim = height * width
+        jacobi = np.zeros((image_dim, image_dim))
+
+        # 遍历每一个输出像素 (row, col)
+        for row in range(height):
+            for col in range(width):
+                # 该输出像素在拉平向量中的下标（雅可比的行号）
+                output_index = row * width + col
+
+                # 遍历卷积核的每个位置 (kernel_row, kernel_col)，
+                # 找出它当前覆盖的是图像的哪个像素
+                for kernel_row in range(kernel_height):
+                    # 核第 kernel_row 行对应的图像行：
+                    # 核中心（第 half_height 行）对准锚点 row，
+                    # 所以核第 i 行对应图像第 row + i - half_height 行
+                    input_row = row + kernel_row - half_height
+                    if not 0 <= input_row < height:
+                        continue  # 越界位置相当于乘 0，偏导为 0，无需写入
+                    for kernel_col in range(kernel_width):
+                        # 同理，核第 kernel_col 列对应图像的列
+                        input_col = col + kernel_col - half_width
+                        if 0 <= input_col < width:
+                            # 被覆盖的输入像素在拉平向量中的下标（雅可比的列号）
+                            input_index = input_row * width + input_col
+                            # 前向中 image[input_row, input_col] 乘的正是
+                            # kernel[kernel_row, kernel_col]，
+                            # 所以偏导数就是这个核权重
+                            jacobi[output_index, input_index] = kernel[
+                                kernel_row, kernel_col
+                            ]
+
+        return jacobi
+
+    def _jacobi_single_kernel(self, image, kernel):
+        """
+        单张图像的卷积结果对卷积核的雅可比矩阵。
+
+        数学背景：
+            由前向公式 result[r, c] = Σ_i Σ_j image[r+i-hh, c+j-hw] * kernel[i, j]
+            可知，输出像素对某个核权重的偏导数，就是与它配对的那个图像像素：
+                ∂result[r, c] / ∂kernel[i, j] = image[r+i-hh, c+j-hw]
+            （若配对位置越出图像边界，则偏导为 0）
+
+        矩阵布局：
+            输出图像按行优先拉平成长度 H*W 的向量，
+            卷积核也按行优先拉平成长度 KH*KW 的向量：
+                核的拉平下标 = 核行号 * kernel_width + 核列号
+            雅可比矩阵形状为 (H*W, KH*KW)：
+                行 = 输出像素的拉平下标，列 = 核权重的拉平下标。
+
+        参数：
+            image: (H, W) 的单张图像（这里需要具体数值，因为偏导数
+                   本身就是图像像素的值）。
+            kernel: (KH, KW) 的卷积核（只用其形状确定遍历范围）。
+        """
+        height, width = image.shape
+        kernel_height, kernel_width = kernel.shape
+        half_height, half_width = kernel_height // 2, kernel_width // 2
+        jacobi = np.zeros((height * width, kernel_height * kernel_width))
+
+        # 遍历每一个输出像素 (row, col)
+        for row in range(height):
+            for col in range(width):
+                # 该输出像素在拉平向量中的下标（雅可比的行号）
+                output_index = row * width + col
+
+                # 遍历卷积核的每个位置 (kernel_row, kernel_col)
+                for kernel_row in range(kernel_height):
+                    # 核第 kernel_row 行当前覆盖的图像行
+                    input_row = row + kernel_row - half_height
+                    if not 0 <= input_row < height:
+                        continue  # 越界：该核权重本次未被使用，偏导为 0
+                    for kernel_col in range(kernel_width):
+                        # 核第 kernel_col 列当前覆盖的图像列
+                        input_col = col + kernel_col - half_width
+                        if 0 <= input_col < width:
+                            # 前向中 kernel[kernel_row, kernel_col] 乘的正是
+                            # image[input_row, input_col]，
+                            # 所以偏导数就是这个图像像素的值；
+                            # 列号 = 核权重在拉平核向量中的下标
+                            jacobi[
+                                output_index,
+                                kernel_row * kernel_width + kernel_col
+                            ] = image[input_row, input_col]
+
+        return jacobi
+
     def get_jacobi(self, parent):
         data, kernel = self._validated_values()
         assert parent in self.parents
 
-        height, width = data.shape
-        kernel_height, kernel_width = kernel.shape
-        half_height, half_width = kernel_height // 2, kernel_width // 2
-        output_dimension = height * width
+        images = self._to_images(data)
 
         if parent is self.parents[0]:
-            jacobi = np.zeros((output_dimension, output_dimension))
+            # 每张输出图像只依赖对应的输入图像，
+            # 整体雅可比是由单张图像雅可比构成的块对角矩阵
+            block = self._jacobi_single_data(images[0].shape, kernel)
+            return np.kron(np.eye(len(images)), block)
 
-            for row in range(height):
-                for col in range(width):
-                    output_index = row * width + col
-                    for kernel_row in range(kernel_height):
-                        input_row = row + kernel_row - half_height
-                        if not 0 <= input_row < height:
-                            continue
-                        for kernel_col in range(kernel_width):
-                            input_col = col + kernel_col - half_width
-                            if 0 <= input_col < width:
-                                input_index = input_row * width + input_col
-                                jacobi[output_index, input_index] = kernel[
-                                    kernel_row, kernel_col
-                                ]
-
-            return jacobi
-
-        parent_dimension = kernel_height * kernel_width
-        jacobi = np.zeros((output_dimension, parent_dimension))
-
-        for row in range(height):
-            for col in range(width):
-                output_index = row * width + col
-                for kernel_row in range(kernel_height):
-                    input_row = row + kernel_row - half_height
-                    if not 0 <= input_row < height:
-                        continue
-                    for kernel_col in range(kernel_width):
-                        input_col = col + kernel_col - half_width
-                        if 0 <= input_col < width:
-                            jacobi[
-                                output_index,
-                                kernel_row * kernel_width + kernel_col
-                            ] = data[input_row, input_col]
-
-        return jacobi
+        # 对卷积核的雅可比：各图像对应的块纵向堆叠
+        return np.vstack([self._jacobi_single_kernel(image, kernel)
+                          for image in images])
 
 
 class MaxPooling(Node):
     """
-    最大值池化
+    最大值池化。
+
+    输入数据恒为二维结构：第 1 维是图像数量 N，第 2 维是图像拉平后的数据（H*W）。
+    本节点在计算内部将每行拉平数据还原为 (H, W) 的二维图像，
+    逐张做最大池化压缩后，再把结果拉平还原为 (N, out_H*out_W) 的二维结构。
+
+    父节点：
+        parents[0]: 图像数据，形状 (N, H*W)。
+
+    kargs:
+        image_shape: 二元组 (H, W)，图像真实的高和宽，必须提供。
+        size: 二元组 (KH, KW)，池化窗口的高和宽。
+        stride: 二元组 (SH, SW)，行 / 列方向的步长。
+
+    输出形状 (N, out_H*out_W)，其中：
+        out_H = ceil(H / SH),  out_W = ceil(W / SW)
     """
 
     def __init__(self, *parent, **kargs):
         Node.__init__(self, *parent, **kargs)
 
+        # 图像真实高宽
+        self.image_shape = kargs.get('image_shape')
+        assert self.image_shape is not None, \
+            "image_shape (height, width) is required"
+        self.image_shape = tuple(self.image_shape)
+        assert len(self.image_shape) == 2, \
+            "image_shape should be a tuple (height, width)"
+
+        # 池化步长
         self.stride = kargs.get('stride')
-        assert self.stride is not None
+        assert self.stride is not None, "stride is required"
         self.stride = tuple(self.stride)
-        assert isinstance(self.stride, tuple) and len(self.stride) == 2
+        assert len(self.stride) == 2, "stride should be a tuple (stride_h, stride_w)"
 
-
+        # 池化窗口尺寸
         self.size = kargs.get('size')
-        assert self.size is not None
+        assert self.size is not None, "size is required"
         self.size = tuple(self.size)
-        assert isinstance(self.size, tuple) and len(self.size) == 2
+        assert len(self.size) == 2, "size should be a tuple (kernel_h, kernel_w)"
 
+        # 每张图像的最大值位置标记（0/1 矩阵，行 = 输出像素，列 = 输入像素）
+        # 批量时为列表，逐图像存储
         self.flag = None
 
-    def compute_value(self):
-        data = self.parents[0].value  # 输入特征图
-        w, h = data.shape  # 输入特征图的宽和高
-        dim = w * h
-        sw, sh = self.stride
-        kw, kh = self.size  # 池化核尺寸
-        hkw, hkh = int(kw / 2), int(kh / 2)  # 池化核长宽的一半
+    def _pool_single(self, image):
+        """
+        对一张 (H, W) 的二维图像做最大池化，返回：
+            result: (out_H, out_W) 的池化结果
+            flag:   (out_H*out_W, H*W) 的 0/1 矩阵，标记每个输出取自输入的哪个位置
+        """
+        height, width = image.shape
+        image_dim = height * width
+        sh, sw = self.stride
+        kh, kw = self.size
+        hkh, hkw = kh // 2, kw // 2  # 池化窗口高宽的一半
 
         result = []
         flag = []
 
-        for i in np.arange(0, w, sw):
+        # 以步长滑动窗口（锚点为窗口中心）
+        for i in range(0, height, sh):
             row = []
-            for j in np.arange(0, h, sh):
-                # 取池化窗口中的最大值
-                top, bottom = max(0, i - hkw), min(w, i + hkw + 1)
-                left, right = max(0, j - hkh), min(h, j + hkh + 1)
-                window = data[top:bottom, left:right]
-                row.append(
-                    np.max(window)
-                )
+            for j in range(0, width, sw):
+                # 窗口边界，越界则裁剪
+                top, bottom = max(0, i - hkh), min(height, i + kh - hkh)
+                left, right = max(0, j - hkw), min(width, j + kw - hkw)
+                window = image[top:bottom, left:right]
+                row.append(np.max(window))
 
-                # 记录最大值在原特征图中的位置
+                # 记录最大值在原图像中的位置（拉平下标）
                 pos = np.argmax(window)
-                w_width = right - left
-                offset_w, offset_h = top + pos // w_width, left + pos % w_width
-                offset = offset_w * w + offset_h
-                tmp = np.zeros(dim)
+                win_width = right - left
+                offset_row = top + pos // win_width
+                offset_col = left + pos % win_width
+                offset = offset_row * width + offset_col
+                tmp = np.zeros(image_dim)
                 tmp[offset] = 1
                 flag.append(tmp)
 
             result.append(row)
 
-        self.flag = np.mat(flag)
-        self.value = np.mat(result)
+        # flag 形状 (out_H*out_W, H*W)，正好是本图像池化操作的雅可比矩阵
+        return np.array(result), np.array(flag)
+
+    def compute_value(self):
+        data = self.parents[0].value
+        height, width = self.image_shape
+        assert data.ndim == 2 and data.shape[1] == height * width, \
+            "data should have shape (N, H*W) with H*W == image_shape[0]*image_shape[1]"
+
+        # 还原成 (N, H, W) 逐张池化
+        images = data.reshape(-1, height, width)
+        results = []
+        flags = []
+        for image in images:
+            result, flag = self._pool_single(image)
+            results.append(result)
+            flags.append(flag)
+
+        self.flag = flags
+        # 拉平还原为 (N, out_H*out_W) 的二维结构
+        return np.array([r.flatten() for r in results])
 
     def get_jacobi(self, parent):
+        assert parent is self.parents[0] and self.flag is not None
 
-        assert parent is self.parents[0] and self.jacobi is not None
-        return self.flag
+        # 单张图像：直接返回该图像的 0/1 标记矩阵
+        if len(self.flag) == 1:
+            return self.flag[0]
+
+        # 批量：每张输出图像只依赖对应的输入图像，
+        # 整体雅可比是由各图像 flag 构成的块对角矩阵。
+        # 为避免一次性构造巨大的稠密矩阵，用 scipy.sparse 或逐块填充。
+        # 这里用块对角稠密矩阵（与框架其余部分保持一致）。
+        from scipy import sparse
+        return sparse.block_diag(self.flag).toarray()
 
 
 class Concat(Node):

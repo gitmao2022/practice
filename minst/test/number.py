@@ -65,9 +65,16 @@ opt=optimizer.Optimizer(epoch=100,batch_size=batch_size,train_set=train_data_lis
 
 layer1_size=30
 layer2_size=10
-affine1=opt.add_fc_layer(opt.input_var, back_layer_size=layer1_size, activation='ReLU',forward_first=True) 
-affine2=opt.add_fc_layer(affine1, back_layer_size=layer2_size, activation='Softmax',forward_first=True)  
-opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
+
+# 第一层：最大池化压缩，28x28 -> 14x14=196，减小后续卷积计算量
+pool1 = opt.add_pool_layer(opt.input_var, image_shape=(28, 28), size=(2, 2), stride=(2, 2), forward_first=True)
+# 第二层：卷积层，3x3 卷积核 + ReLU，same 卷积输出仍是 14x14=196 维
+conv1 = opt.add_conv_layer(pool1, filter_size=3, image_shape=(14, 14), activation='ReLU', forward_first=True)
+# 第三层：全连接层 196 -> 30
+affine1 = opt.add_fc_layer(conv1, back_layer_size=layer1_size, activation='ReLU', forward_first=True)
+# 第四层：全连接层 30 -> 10，接 Softmax
+affine2 = opt.add_fc_layer(affine1, back_layer_size=layer2_size, activation='Softmax', forward_first=True)
+opt.loss_node = loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
 
 # #only one layer with 10 neurons and softmax activation
 # layer1_size=0
