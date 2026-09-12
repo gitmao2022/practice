@@ -59,28 +59,19 @@ for i in range(test_label_list.shape[0]):
 
 
 default_graph = graph.default_graph
-batch_size=64
-opt=optimizer.Optimizer(epoch=100,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.006,optimizer_type='adam')
+batch_size=32
+opt=optimizer.Optimizer(epoch=200,batch_size=batch_size,train_set=train_data_list,target_set=t_train_one_hot,learning_rate=0.003,optimizer_type='adam')
 # set two layers: one hidden layer with 128 neurons and ReLU activation, and an output layer with 10 neurons and softmax activation
 
-layer1_size=30
 layer2_size=10
 
-# 第一层：最大池化压缩，28x28 -> 14x14=196，减小后续卷积计算量
-pool1 = opt.add_pool_layer(opt.input_var, image_shape=(28, 28), size=(2, 2), stride=(2, 2), forward_first=True)
-# 第二层：卷积层，3x3 卷积核 + ReLU，same 卷积输出仍是 14x14=196 维
-conv1 = opt.add_conv_layer(pool1, filter_size=3, image_shape=(14, 14), activation='ReLU', forward_first=True)
-# 第三层：全连接层 196 -> 30
-affine1 = opt.add_fc_layer(conv1, back_layer_size=layer1_size, activation='ReLU', forward_first=True)
-# 第四层：全连接层 30 -> 10，接 Softmax
-affine2 = opt.add_fc_layer(affine1, back_layer_size=layer2_size, activation='Softmax', forward_first=True)
+# 第一层：卷积层，先从原始 28x28 图像提取特征
+conv1 = opt.add_conv_layer(opt.input_var, filter_size=3, image_shape=(28, 28), activation='ReLU', forward_first=True)
+# 第二层：最大池化将卷积特征压缩为 14x14=196 维
+pool1 = opt.add_pool_layer(conv1, image_shape=(28, 28), size=(2, 2), stride=(2, 2), forward_first=True, track_gradient=True)
+# 第三层：全连接层 196 -> 10，接 Softmax
+affine2 = opt.add_fc_layer(pool1, back_layer_size=layer2_size, activation='Softmax', forward_first=True)
 opt.loss_node = loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
-
-# #only one layer with 10 neurons and softmax activation
-# layer1_size=0
-# layer2_size=10
-# affine2=opt.add_fc_layer(opt.input_var, back_layer_size=layer2_size, activation='Softmax',forward_first=True)  # forward_first=True to compute affine2's value immediately for the loss node's input
-# opt.loss_node=loss_node.CrossEntropyWithSoftMax(affine2, opt.target_var)
 
 accuracy = []
 # default_graph.draw()
@@ -100,6 +91,7 @@ for i in range(opt.epoch):
     accuracy.append(acc)
 end_time = time()
 print("Training completed.","accuracy is", accuracy)
+print("Total training time:", end_time - start_time)
 
 #根据训练好的模型在完整测试集上评估准确率,对识别错误的样本进行可视化展示
 opt.input_var.set_value(test_data_list)  # set test data as input
@@ -120,10 +112,10 @@ with open('num_training_log.txt', 'a') as f:
     f.write(f"Learning rate: {opt.learning_rate}\n")
     f.write(f"Optimizer type: {opt.optimizer_type}\n")
 
-    #calculate layer depth by counting the number of affine layers
-    f.write(f"Layer depth: 2\n")
-    f.write(f"Layer 1 output size: {layer1_size}\n")
-    f.write(f"Layer 2 output size: {layer2_size}\n")
+    #write the layers in the network and record the information about each layer,do not record variable nodes
+    for node in default_graph.nodes:
+        if not isinstance(node, variable_node.Variable) and node.value is not None:
+            f.write(f"Layer: {node.node_name}, layershape: {node.value.shape}\n")
     f.write(f"Final training accuracy: {accuracy[-1]}\n")
     f.write(f"Test accuracy: {test_acc}\n")
     f.write(f"Total training time: {end_time - start_time} seconds\n")

@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-10-02 15:09:15
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-05-20 17:13:55
+@LastEditTime : 2026-09-10 15:11:20
 @FilePath     : optimizer.py
 @Copyright (C) 2025  by gitmao2022. All rights reserved.
 '''
@@ -69,11 +69,12 @@ class Optimizer:
                     jacobi_mean=np.mean(node.jacobi,axis=0).reshape(node.shape)   #the reason why we use reshape because the jacobi is a 2D array with shape (batch_size, node.shape) and we need to reshape it to the original shape of the node
                     self.jacobi_cache[node.node_name]=jacobi_mean
             # print(self.jacobi_cache)        
+            if self.optimizer_type == 'adam':
+                self._adam_t += 1
             for node in default_graph.nodes:
                 if isinstance(node, Variable) and node.trainable:
                     jacobi_mean=self.jacobi_cache[node.node_name]
                     if self.optimizer_type == 'adam':
-                        self._adam_t += 1
                         beta1 = 0.9
                         beta2 = 0.999
                         eps = 1e-8
@@ -137,10 +138,11 @@ class Optimizer:
         :param forward_first: 是否在添加层后立即进行前向传播。
         :return: 卷积层的输出节点，形状仍为 (N, H*W)。
         """
-        # 卷积核是可训练变量，形状 (filter_size, filter_size)
+        # 卷积核和共享偏置都是可训练变量。
         kernel = Variable((filter_size, filter_size), init=True, trainable=True)
+        bias = Variable((1, 1), init=True, trainable=True)
         # Convolve 节点内部完成 (N, H*W) -> (N, H, W) 卷积 -> (N, H*W) 的转换
-        conv = Convolve(previous_layer, kernel, image_shape=image_shape)
+        conv = Add(Convolve(previous_layer, kernel, image_shape=image_shape), bias)
 
         if activation == "ReLU":
             conv = ReLU(conv)
@@ -151,7 +153,7 @@ class Optimizer:
             conv.forward()
         return conv
 
-    def add_pool_layer(self, previous_layer, image_shape, size=(2, 2), stride=(2, 2), forward_first=False):
+    def add_pool_layer(self, previous_layer, image_shape, size=(2, 2), stride=(2, 2), forward_first=False, track_gradient=True):
         """
         添加一个最大池化层，对图像进行下采样压缩。
 
@@ -160,10 +162,12 @@ class Optimizer:
         :param size: 二元组 (KH, KW)，池化窗口尺寸，默认 (2, 2)。
         :param stride: 二元组 (SH, SW)，步长，默认 (2, 2)。
         :param forward_first: 是否在添加层后立即进行前向传播。
+        :param track_gradient: 是否记录池化层的雅可比矩阵。
         :return: 池化层输出节点，形状 (N, out_H*out_W)。
         """
         pool = MaxPooling(previous_layer, image_shape=image_shape,
-                          size=size, stride=stride)
+                  size=size, stride=stride,
+                  track_gradient=track_gradient)
         if forward_first:
             pool.forward()
         return pool

@@ -46,6 +46,11 @@ class ReLU(Node):
         # considering parent maybe two dimensional, we need to flatten it before creating the diagonal matrix
         return np.diag(np.where(self.parents[0].value.flatten() > 0.0, 1.0, self.nslope))
 
+    def backward_jacobi_product(self, output_jacobi, parent):
+        assert parent is self.parents[0]
+        slope = np.where(self.parents[0].value.flatten() > 0.0, 1.0, self.nslope)
+        return output_jacobi * slope
+
 
         
 class Softmax(Node):

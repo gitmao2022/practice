@@ -87,6 +87,9 @@ class Node(object):
 
     def compute_value(self):
         return self.value
+
+    def backward_jacobi_product(self, output_jacobi, parent):
+        return None
         
 
     def dimension(self):
@@ -109,7 +112,11 @@ class Node(object):
                     if child.value is not None:
                         #catch ValueError exception when shapes are not aligned
                         try:
-                            self.jacobi +=np.dot(child.backward(result), child.get_jacobi(self))
+                            child_jacobi = child.backward(result)
+                            product = child.backward_jacobi_product(child_jacobi, self)
+                            if product is None:
+                                product = np.dot(child_jacobi, child.get_jacobi(self))
+                            self.jacobi += product
                         except ValueError as e:
                             print(f"ValueError in backward propagation at node {child.node_name}:{e}")  
                             print('self.node_name', self.node_name,'self.shape', self.shape)

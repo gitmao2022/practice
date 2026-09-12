@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-09-09 22:07:57
+@LastEditTime : 2026-09-11 11:22:16
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -53,10 +53,21 @@ class Add(Node):
                 n, m = self.value.shape
                 if parent.value.shape == (1, m):
                     return np.kron(np.ones((n, 1)), np.eye(m))
+                if parent.value.shape == (1, 1):
+                    return np.ones((n * m, 1))
 
             raise ValueError(
                 f"Unsupported broadcast in Add.get_jacobi: self.shape={self.value.shape}, parent.shape={parent.value.shape}"
             )
+
+    def backward_jacobi_product(self, output_jacobi, parent):
+        if parent.value.shape == self.value.shape:
+            return output_jacobi
+        if parent.value.shape == (1, 1):
+            return np.sum(output_jacobi, axis=1, keepdims=True)
+        if len(self.value.shape) == 2 and parent.value.shape == (1, self.value.shape[1]):
+            return output_jacobi.reshape(output_jacobi.shape[0], self.value.shape[0], self.value.shape[1]).sum(axis=1)
+        return None
 
 
 class MatMul(Node):
@@ -343,7 +354,7 @@ class Convolve(Node):
 
 class MaxPooling(Node):
     """
-    最大值池化。
+    最大池化。
 
     输入数据恒为二维结构：第 1 维是图像数量 N，第 2 维是图像拉平后的数据（H*W）。
     本节点在计算内部将每行拉平数据还原为 (H, W) 的二维图像，
@@ -384,49 +395,42 @@ class MaxPooling(Node):
         self.size = tuple(self.size)
         assert len(self.size) == 2, "size should be a tuple (kernel_h, kernel_w)"
 
-        # 每张图像的最大值位置标记（0/1 矩阵，行 = 输出像素，列 = 输入像素）
-        # 批量时为列表，逐图像存储
-        self.flag = None
+        self.track_gradient = kargs.get('track_gradient', True)
+        # 每张图像每个池化窗口的最大值输入索引
+        self.max_indices = None
 
     def _pool_single(self, image):
         """
         对一张 (H, W) 的二维图像做最大池化，返回：
             result: (out_H, out_W) 的池化结果
-            flag:   (out_H*out_W, H*W) 的 0/1 矩阵，标记每个输出取自输入的哪个位置
+            max_indices: 每个输出对应的输入扁平索引
         """
         height, width = image.shape
-        image_dim = height * width
         sh, sw = self.stride
         kh, kw = self.size
-        hkh, hkw = kh // 2, kw // 2  # 池化窗口高宽的一半
 
         result = []
-        flag = []
+        max_indices = [] if self.track_gradient else None
 
-        # 以步长滑动窗口（锚点为窗口中心）
+        # 标准池化：从左上角开始，以 stride 移动窗口。
         for i in range(0, height, sh):
             row = []
             for j in range(0, width, sw):
-                # 窗口边界，越界则裁剪
-                top, bottom = max(0, i - hkh), min(height, i + kh - hkh)
-                left, right = max(0, j - hkw), min(width, j + kw - hkw)
+                top, bottom = i, min(height, i + kh)
+                left, right = j, min(width, j + kw)
                 window = image[top:bottom, left:right]
                 row.append(np.max(window))
 
-                # 记录最大值在原图像中的位置（拉平下标）
-                pos = np.argmax(window)
-                win_width = right - left
-                offset_row = top + pos // win_width
-                offset_col = left + pos % win_width
-                offset = offset_row * width + offset_col
-                tmp = np.zeros(image_dim)
-                tmp[offset] = 1
-                flag.append(tmp)
+                if self.track_gradient:
+                    position = np.argmax(window)
+                    max_indices.append(
+                        (top + position // window.shape[1]) * width
+                        + left + position % window.shape[1]
+                    )
 
             result.append(row)
 
-        # flag 形状 (out_H*out_W, H*W)，正好是本图像池化操作的雅可比矩阵
-        return np.array(result), np.array(flag)
+        return np.array(result), np.array(max_indices, dtype=np.intp) if self.track_gradient else None
 
     def compute_value(self):
         data = self.parents[0].value
@@ -437,34 +441,60 @@ class MaxPooling(Node):
         # 还原成 (N, H, W) 逐张池化
         images = data.reshape(-1, height, width)
         results = []
-        flags = []
+        max_indices = [] if self.track_gradient else None
         for image in images:
-            result, flag = self._pool_single(image)
+            result, indices = self._pool_single(image)
             results.append(result)
-            flags.append(flag)
+            if self.track_gradient:
+                max_indices.append(indices)
 
-        self.flag = flags
+        self.max_indices = max_indices
         # 拉平还原为 (N, out_H*out_W) 的二维结构
         return np.array([r.flatten() for r in results])
 
     def get_jacobi(self, parent):
-        assert parent is self.parents[0] and self.flag is not None
+        assert parent is self.parents[0]
+        if self.max_indices is None:
+            raise RuntimeError("Pooling gradients are disabled for this layer")
 
         # 单张图像：直接返回该图像的 0/1 标记矩阵
-        if len(self.flag) == 1:
-            return self.flag[0]
+        input_dim = self.image_shape[0] * self.image_shape[1]
+        output_dim = len(self.max_indices[0])
+        if len(self.max_indices) == 1:
+            jacobi = np.zeros((output_dim, input_dim))
+            jacobi[np.arange(output_dim), self.max_indices[0]] = 1
+            return jacobi
 
         # 批量：每张输出图像只依赖对应的输入图像，
         # 整体雅可比是由各图像 flag 构成的块对角矩阵。
-        block_rows, block_cols = self.flag[0].shape
-        jacobi = np.zeros((len(self.flag) * block_rows,
-                           len(self.flag) * block_cols))
-        for index, block in enumerate(self.flag):
+        block_rows, block_cols = output_dim, input_dim
+        jacobi = np.zeros((len(self.max_indices) * block_rows,
+                   len(self.max_indices) * block_cols))
+        for index, max_indices in enumerate(self.max_indices):
             row_start = index * block_rows
             col_start = index * block_cols
-            jacobi[row_start:row_start + block_rows,
-                   col_start:col_start + block_cols] = block
+            rows = np.arange(block_rows) + row_start
+            cols = max_indices + col_start
+            jacobi[rows, cols] = 1
         return jacobi
+
+    def backward_jacobi_product(self, output_jacobi, parent):
+        assert parent is self.parents[0]
+        if self.max_indices is None:
+            raise RuntimeError("Pooling gradients are disabled for this layer")
+
+        batch_size = len(self.max_indices)
+        output_dim = len(self.max_indices[0])
+        input_dim = self.image_shape[0] * self.image_shape[1]
+        result = np.zeros((output_jacobi.shape[0], batch_size * input_dim))
+        for batch_index, max_indices in enumerate(self.max_indices):
+            output_start = batch_index * output_dim
+            input_start = batch_index * input_dim
+            for output_index, input_index in enumerate(max_indices):
+                result[:, input_start + input_index] += output_jacobi[
+                    :, output_start + output_index
+                ]
+        return result
 
 
 class Concat(Node):
