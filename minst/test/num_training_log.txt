@@ -503,3 +503,20 @@ Layer: CrossEntropyWithSoftMax:13, layershape: (10000, 1)
 Final training accuracy: 0.9375
 Test accuracy: 0.8873
 Total training time: 143.25403141975403 seconds
+
+==================================================
+Training session at 2026-09-15:
+Epochs: 200
+Batch size: 32
+Learning rate: 0.003
+Optimizer type: adam
+Layer: Convolve:4, layershape: (10000, 784)
+Layer: Add:5, layershape: (10000, 784)
+Layer: ReLU:6, layershape: (10000, 784)
+Layer: MaxPooling:7, layershape: (10000, 196)
+Layer: MatMul:10, layershape: (10000, 10)
+Layer: Add:11, layershape: (10000, 10)
+Layer: CrossEntropyWithSoftMax:13, layershape: (10000, 1)
+Final training accuracy: 0.84375
+Test accuracy: 0.8548
+Total training time: 100.56099104881287 seconds

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 import sys
 from time import time
 import matplotlib
@@ -102,7 +102,7 @@ test_true = np.argmax(opt.target_var.value, axis=1)
 test_acc = np.sum(test_pred == test_true) / test_data_list.shape[0]
 print("Test accuracy:", test_acc)
 
-#create a log file to record the training information
+#create a log file to record the training information,first step,删除30天之前的记录
 with open('num_training_log.txt', 'a') as f:
     #first write a separator line to distinguish different training sessions
     f.write("\n"+"="*50+"\n")
@@ -111,7 +111,21 @@ with open('num_training_log.txt', 'a') as f:
     f.write(f"Batch size: {opt.batch_size}\n")
     f.write(f"Learning rate: {opt.learning_rate}\n")
     f.write(f"Optimizer type: {opt.optimizer_type}\n")
-
+    #delete log entries older than 30 days
+    try:
+        with open('num_training_log.txt', 'r') as f:
+            lines = f.readlines()
+        with open('num_training_log.txt', 'w') as f:
+            cutoff_date = date.today() - timedelta(days=30)
+            skip = False
+            for line in lines:
+                if line.startswith("Training session at"):
+                    session_date = datetime.strptime(line.split(" at ")[1].strip()[:-1], "%Y-%m-%d").date()
+                    skip = session_date < cutoff_date
+                if not skip:
+                    f.write(line)
+    except FileNotFoundError:
+        pass
     #write the layers in the network and record the information about each layer,do not record variable nodes
     for node in default_graph.nodes:
         if not isinstance(node, variable_node.Variable) and node.value is not None:
