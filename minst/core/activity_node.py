@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 22:45:59
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-03-29 10:49:46
+@LastEditTime : 2026-09-14 20:40:11
 @FilePath     : activity_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -47,6 +47,11 @@ class ReLU(Node):
         return np.diag(np.where(self.parents[0].value.flatten() > 0.0, 1.0, self.nslope))
 
     def backward_jacobi_product(self, output_jacobi, parent):
+        '''
+        by Relu activation function, the backward jacobi is the same shape as the input (parent), and can be computed element-wise.so for each element, dLoss/dparent=dLoss/dnode*dnode/dparent.and dnode/dparent=0 if input<0 else 1.
+        '''
+
+
         assert parent is self.parents[0]
         slope = np.where(self.parents[0].value.flatten() > 0.0, 1.0, self.nslope)
         return output_jacobi * slope

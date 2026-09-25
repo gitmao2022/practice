@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-09-11 11:22:16
+@LastEditTime : 2026-09-13 22:42:41
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -483,13 +483,13 @@ class MaxPooling(Node):
         if self.max_indices is None:
             raise RuntimeError("Pooling gradients are disabled for this layer")
 
-        batch_size = len(self.max_indices)
-        output_dim = len(self.max_indices[0])
-        input_dim = self.image_shape[0] * self.image_shape[1]
-        result = np.zeros((output_jacobi.shape[0], batch_size * input_dim))
+        batch_size = len(self.max_indices)  #because each element in max_indices corresponds to one image in the batch
+        output_dim = len(self.max_indices[0])   #the output_dim equals the number of elements in the pooled output for a single image
+        input_dim = self.image_shape[0] * self.image_shape[1] #the input_dim equals the number of elements in the flattened input image
+        result = np.zeros((output_jacobi.shape[0], batch_size * input_dim)) #the jacobi matrix of  parent,as the original input iamges.the shape[0] equanls the num of lossNode's units;and the shape[1] equals the total number of elements in the batch of input images
         for batch_index, max_indices in enumerate(self.max_indices):
-            output_start = batch_index * output_dim
-            input_start = batch_index * input_dim
+            output_start = batch_index * output_dim #the index of the current image in the output jacobi matrix
+            input_start = batch_index * input_dim #the index of the current image in the input jacobi matrix
             for output_index, input_index in enumerate(max_indices):
                 result[:, input_start + input_index] += output_jacobi[
                     :, output_start + output_index
