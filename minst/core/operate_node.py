@@ -4,7 +4,7 @@
 @Author       : gitmao2022
 @Date         : 2025-03-23 20:46:05
 @LastEditors  : gitmao2022
-@LastEditTime : 2026-09-13 22:42:41
+@LastEditTime : 2026-09-16 14:28:00
 @FilePath     : operate_node.py
 @Copyright (C) 2025  by ${gitmao2022}. All rights reserved.
 '''
@@ -192,7 +192,6 @@ class Convolve(Node):
             # 卷积核滑动时每次计算的开始和结束行
             row_start = max(0, row - half_height)
             row_stop = min(height, row + kernel_height - half_height)
-            # 用 row_start - (row - half_height) 更易理解：
             # kernel_start 本来应该从第 0 行开始，因为原图像截去了
             # row_start - (row - half_height) 行，所以 kernel_start 相应地向下移动
             kernel_row_start = row_start - row + half_height
@@ -350,6 +349,98 @@ class Convolve(Node):
         # 对卷积核的雅可比：各图像对应的块纵向堆叠
         return np.vstack([self._jacobi_single_kernel(image, kernel)
                           for image in images])
+
+    def backward_jacobi_product(self, output_jacobi, parent):
+        """
+        计算 ``output_jacobi @ d(self) / d(parent)``，但不显式构造完整雅可比矩阵。
+
+        设 ``output_jacobi`` 的形状为 ``(L, N * H * W)``：
+            - ``L`` 是前方链路中需要同时传播的雅可比行数；
+            - ``N`` 是 batch size；
+            - ``H * W`` 是每张图像拉平后的输出元素数量。
+
+        根据链式法则，本函数要计算的是：
+            ``output_jacobi @ d(output) / d(parent)``。
+        卷积输出中的每个像素只依赖输入图像的局部区域，因此可以通过切片和
+        逐元素乘法直接完成这个矩阵乘积，避免分配形状为
+        ``(N * H * W, N * H * W)`` 的巨大稠密雅可比矩阵。
+
+        ``parent`` 为图像数据时：
+            对卷积核的每个位置，将对应的上游梯度平移到输入图像的对应位置，
+            再乘以该卷积核权重并累加。边界切片负责跳过 same 卷积中的越界区域。
+
+        ``parent`` 为卷积核时：
+            对每个卷积核权重，取它覆盖到的输入图像区域，与对应输出位置的
+            上游梯度逐元素相乘，并沿 batch、行、列三个维度求和。
+        """
+        data, kernel = self._validated_values()
+        assert parent in self.parents
+
+        batch_size, image_dim = data.shape
+        height, width = self.image_shape
+        kernel_height, kernel_width = kernel.shape
+        half_height, half_width = kernel_height // 2, kernel_width // 2
+        loss_dim = output_jacobi.shape[0]
+        # output_jacobi 的列仍按 (batch, H*W) 排列；还原为图像布局后，
+        # 后面的切片操作就可以直接对应卷积输出的行、列坐标。
+        output_gradient = output_jacobi.reshape(loss_dim, batch_size, height, width)
+
+        if parent is self.parents[0]:
+            # input_gradient[l, n, r, c] 表示第 l 条雅可比链路对第 n 张
+            # 输入图像中像素 (r, c) 的结果。每个卷积核位置都会把它所
+            # 影响的输出区域反向平移回输入区域，并按对应权重累加。
+            input_gradient = np.zeros((loss_dim, batch_size, height, width),
+                                      dtype=output_jacobi.dtype)
+            for kernel_row in range(kernel_height):
+                # 当前卷积核行对应的输出有效范围。超出图像边界的部分
+                # 在 same 卷积中不存在，因此不参与反向传播。
+                output_row_start = max(0, half_height - kernel_row)
+                output_row_stop = min(height, height + half_height - kernel_row)
+                input_row_start = output_row_start + kernel_row - half_height
+                input_row_stop = output_row_stop + kernel_row - half_height
+                for kernel_col in range(kernel_width):
+                    output_col_start = max(0, half_width - kernel_col)
+                    output_col_stop = min(width, width + half_width - kernel_col)
+                    input_col_start = output_col_start + kernel_col - half_width
+                    input_col_stop = output_col_stop + kernel_col - half_width
+                    # 当前核权重对输入区域的偏导恒等于该权重，
+                    # 所以将对应输出梯度乘以权重后累加到输入梯度。
+                    input_gradient[:, :, input_row_start:input_row_stop,
+                                   input_col_start:input_col_stop] += (
+                        output_gradient[:, :, output_row_start:output_row_stop,
+                                        output_col_start:output_col_stop]
+                        * kernel[kernel_row, kernel_col]
+                    )
+            # 恢复节点约定的二维批量布局：(L, N * H*W)。
+            return input_gradient.reshape(loss_dim, batch_size * image_dim)
+
+        images = self._to_images(data)
+        # kernel_gradient[l, i, j] 表示第 l 条雅可比链路对核中
+        # kernel[i, j] 的导数。每张图像、每个输出位置的贡献都要相加。
+        kernel_gradient = np.zeros((loss_dim, kernel_height, kernel_width),
+                                   dtype=output_jacobi.dtype)
+        for kernel_row in range(kernel_height):
+            output_row_start = max(0, half_height - kernel_row)
+            output_row_stop = min(height, height + half_height - kernel_row)
+            input_row_start = output_row_start + kernel_row - half_height
+            input_row_stop = output_row_stop + kernel_row - half_height
+            for kernel_col in range(kernel_width):
+                output_col_start = max(0, half_width - kernel_col)
+                output_col_stop = min(width, width + half_width - kernel_col)
+                input_col_start = output_col_start + kernel_col - half_width
+                input_col_stop = output_col_stop + kernel_col - half_width
+                kernel_gradient[:, kernel_row, kernel_col] = np.sum(
+                    # 对固定的核权重，前向计算中它乘以对应输入像素；
+                    # 因此偏导是“上游梯度 * 对齐后的输入区域”，
+                    # 再对 batch 和所有空间位置求和。
+                    output_gradient[:, :, output_row_start:output_row_stop,
+                                    output_col_start:output_col_stop]
+                    * images[None, :, input_row_start:input_row_stop,
+                             input_col_start:input_col_stop],
+                    axis=(1, 2, 3)
+                )
+        # 卷积核对外仍以二维矩阵展平后的形状返回。
+        return kernel_gradient.reshape(loss_dim, kernel_height * kernel_width)
 
 
 class MaxPooling(Node):
